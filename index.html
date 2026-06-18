@@ -653,6 +653,702 @@
         box-shadow: var(--shadow);
       }
 
+      .view {
+        min-height: 680px;
+        padding: 16px;
+      }
+
+      .view-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 14px;
+      }
+
+      .view-header h2 {
+        margin: 0;
+        font-size: 17px;
+        text-wrap: balance;
+      }
+
+      .view-header p {
+        margin: 5px 0 0;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .total-probability {
+        flex: 0 0 auto;
+        padding: 8px 10px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-small);
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .total-probability strong {
+        margin-left: 5px;
+        color: var(--text);
+        font-size: 18px;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .control-section + .control-section {
+        margin-top: 20px;
+        padding-top: 18px;
+        border-top: 1px solid var(--border);
+      }
+
+      .control-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin: 0 0 12px;
+        font-size: 12px;
+        font-weight: 720;
+        letter-spacing: 0.035em;
+        text-transform: uppercase;
+      }
+
+      .factor-control {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 7px 10px;
+        margin-bottom: 15px;
+      }
+
+      .factor-control label {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .factor-control output {
+        color: var(--text);
+        font-size: 12px;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .factor-control input[type="range"] {
+        grid-column: 1 / -1;
+        width: 100%;
+        height: 5px;
+        margin: 3px 0;
+        accent-color: var(--purple);
+      }
+
+      .event-entry {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 8px;
+      }
+
+      .event-card {
+        display: grid;
+        gap: 8px;
+        margin-top: 8px;
+        padding: 10px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-small);
+        background: rgba(8, 14, 28, 0.34);
+      }
+
+      .event-card-head {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        align-items: start;
+        gap: 8px;
+      }
+
+      .event-card-title {
+        min-width: 0;
+        font-size: 12px;
+        overflow-wrap: anywhere;
+      }
+
+      .event-state {
+        color: var(--muted);
+        font-size: 10px;
+      }
+
+      .event-delete {
+        min-width: 28px;
+        min-height: 28px;
+        padding: 0;
+      }
+
+      .evidence-tabs {
+        display: flex;
+        gap: 4px;
+        margin-bottom: 10px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .evidence-tab {
+        flex: 1;
+        min-height: 32px;
+        border: 0;
+        border-radius: 6px;
+        color: var(--muted);
+        background: transparent;
+        font-size: 11px;
+      }
+
+      .evidence-tab[aria-selected="true"] {
+        color: var(--text);
+        background: rgba(139, 92, 246, 0.22);
+      }
+
+      .evidence-list,
+      .source-list,
+      .contradiction-list {
+        display: grid;
+        gap: 8px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .evidence-item,
+      .source-item,
+      .contradiction-item {
+        padding: 10px 0;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .evidence-item p,
+      .source-item p,
+      .contradiction-item p {
+        margin: 0;
+        font-size: 12px;
+      }
+
+      .evidence-meta,
+      .source-meta {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        margin-top: 5px;
+        color: var(--subtle);
+        font-size: 10px;
+      }
+
+      .source-item a {
+        color: #a8c7ff;
+        font-size: 12px;
+        text-decoration: none;
+      }
+
+      .source-item a:hover {
+        text-decoration: underline;
+      }
+
+      .evidence-section-title {
+        margin: 18px 0 8px;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .galaxy-stage {
+        position: relative;
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        grid-template-rows: repeat(10, minmax(48px, 1fr));
+        min-height: 570px;
+        border: 1px solid rgba(148, 163, 255, 0.12);
+        border-radius: var(--radius);
+        background:
+          repeating-radial-gradient(
+            circle at 50% 50%,
+            transparent 0 72px,
+            rgba(104, 120, 201, 0.1) 73px,
+            transparent 74px 130px
+          ),
+          radial-gradient(circle at 50% 48%, rgba(49, 43, 109, 0.35), transparent 48%);
+        overflow: hidden;
+      }
+
+      .galaxy-stage::before {
+        position: absolute;
+        inset: 0;
+        background-image:
+          radial-gradient(circle at 22% 32%, rgba(56, 189, 248, 0.8) 0 1px, transparent 1.5px),
+          radial-gradient(circle at 76% 25%, rgba(139, 92, 246, 0.75) 0 1px, transparent 1.5px),
+          radial-gradient(circle at 66% 78%, rgba(34, 211, 238, 0.65) 0 1px, transparent 1.5px);
+        background-size: 170px 130px, 220px 180px, 190px 150px;
+        opacity: 0.55;
+        content: "";
+      }
+
+      .outcome-orb {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        align-self: center;
+        justify-self: center;
+        width: var(--orb-size);
+        max-width: 100%;
+        aspect-ratio: 1;
+        place-items: center;
+        padding: 14px;
+        border: 1px solid color-mix(in srgb, var(--orb-color) 78%, white 8%);
+        border-radius: 50%;
+        color: var(--text);
+        background:
+          radial-gradient(circle at 38% 30%, color-mix(in srgb, var(--orb-color) 34%, transparent), transparent 68%),
+          rgba(8, 14, 31, 0.86);
+        box-shadow:
+          0 0 28px color-mix(in srgb, var(--orb-color) 34%, transparent),
+          inset 0 0 30px rgba(255, 255, 255, 0.025);
+        text-align: center;
+      }
+
+      .outcome-orb strong {
+        display: block;
+        font-size: clamp(13px, 1.3vw, 20px);
+        line-height: 1.15;
+        text-wrap: balance;
+      }
+
+      .outcome-orb [data-probability] {
+        display: block;
+        margin-top: 5px;
+        color: var(--orb-color);
+        font-size: clamp(20px, 2.2vw, 34px);
+        font-weight: 760;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .outcome-orb small {
+        display: block;
+        margin-top: 2px;
+        color: var(--muted);
+        font-size: 10px;
+      }
+
+      .ranked-list {
+        display: grid;
+        gap: 1px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+      }
+
+      .ranked-row {
+        display: grid;
+        grid-template-columns: 42px minmax(180px, 1.5fr) minmax(140px, 0.8fr) 90px;
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+        min-height: 92px;
+        padding: 12px;
+        border: 0;
+        border-bottom: 1px solid var(--border);
+        color: var(--text);
+        background: rgba(7, 12, 26, 0.34);
+        text-align: left;
+      }
+
+      .ranked-row:last-child {
+        border-bottom: 0;
+      }
+
+      .ranked-row:hover {
+        background: rgba(25, 32, 60, 0.62);
+      }
+
+      .rank-number {
+        color: var(--outcome-color);
+        font-size: 26px;
+        font-weight: 760;
+        text-align: center;
+      }
+
+      .ranked-copy strong {
+        display: block;
+        margin-bottom: 4px;
+      }
+
+      .ranked-copy span {
+        color: var(--muted);
+        font-size: 11px;
+      }
+
+      .probability-cell strong {
+        color: var(--outcome-color);
+        font-size: 24px;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .probability-track {
+        height: 6px;
+        margin-top: 7px;
+        border-radius: 99px;
+        background: rgba(148, 163, 255, 0.12);
+        overflow: hidden;
+      }
+
+      .probability-track span {
+        display: block;
+        width: var(--probability);
+        height: 100%;
+        border-radius: inherit;
+        background: var(--outcome-color);
+        transition: width var(--transition);
+      }
+
+      .confidence-cell {
+        color: var(--muted);
+        font-size: 11px;
+        text-align: center;
+      }
+
+      .confidence-cell strong {
+        display: block;
+        color: var(--text);
+        font-size: 16px;
+      }
+
+      .explainability {
+        margin-top: 12px;
+        padding: 14px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--panel);
+      }
+
+      .explainability h3 {
+        margin: 0 0 8px;
+        font-size: 14px;
+      }
+
+      .driver-list {
+        display: grid;
+        gap: 7px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .driver-list li {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        color: var(--muted);
+        font-size: 11px;
+      }
+
+      .coverage-note {
+        margin: 14px 0 0;
+        color: var(--muted);
+        font-size: 11px;
+      }
+
+      .tree-map {
+        display: grid;
+        grid-template-columns: minmax(130px, 0.72fr) minmax(170px, 0.9fr) minmax(240px, 1.4fr);
+        align-items: center;
+        gap: 34px;
+        min-height: 570px;
+        padding: 24px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background:
+          linear-gradient(rgba(56, 189, 248, 0.06), transparent 38%),
+          rgba(4, 9, 21, 0.35);
+      }
+
+      .tree-root,
+      .tree-branch,
+      .tree-outcome {
+        position: relative;
+        padding: 14px;
+        border: 1px solid var(--node-color, var(--blue));
+        border-radius: var(--radius-small);
+        background: rgba(9, 16, 31, 0.9);
+      }
+
+      .tree-root {
+        align-self: center;
+        text-align: center;
+      }
+
+      .tree-branch-column,
+      .tree-outcome-column {
+        display: grid;
+        gap: 10px;
+      }
+
+      .tree-branch::before,
+      .tree-outcome::before {
+        position: absolute;
+        top: 50%;
+        right: 100%;
+        width: 34px;
+        height: 1px;
+        background: var(--node-color, var(--blue));
+        content: "";
+      }
+
+      .tree-branch strong,
+      .tree-outcome strong {
+        display: block;
+        margin-bottom: 4px;
+      }
+
+      .tree-branch span,
+      .tree-outcome span {
+        color: var(--muted);
+        font-size: 11px;
+      }
+
+      .tree-outcome output {
+        float: right;
+        color: var(--node-color);
+        font-size: 18px;
+        font-weight: 750;
+      }
+
+      .timeline-stage {
+        display: grid;
+        gap: 18px;
+      }
+
+      .timeline-axis {
+        position: relative;
+        min-height: 190px;
+        padding: 38px 18px 18px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: rgba(5, 11, 24, 0.32);
+      }
+
+      .timeline-axis::before {
+        position: absolute;
+        top: 104px;
+        right: 24px;
+        left: 24px;
+        height: 2px;
+        background: linear-gradient(90deg, var(--blue), var(--purple), var(--cyan));
+        content: "";
+      }
+
+      .timeline-labels {
+        display: flex;
+        justify-content: space-between;
+        color: var(--muted);
+        font-size: 11px;
+      }
+
+      .timeline-events {
+        position: absolute;
+        inset: 58px 24px auto;
+        height: 100px;
+      }
+
+      .timeline-event {
+        position: absolute;
+        top: 18px;
+        width: 124px;
+        min-height: 58px;
+        padding: 8px;
+        border: 1px solid var(--event-color, var(--purple));
+        border-radius: 7px;
+        background: rgba(8, 14, 30, 0.96);
+        font-size: 10px;
+        text-align: center;
+        transform: translateX(-50%);
+      }
+
+      .timeline-event::after {
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        width: 1px;
+        height: 18px;
+        background: var(--event-color, var(--purple));
+        content: "";
+      }
+
+      .timeline-chart {
+        min-height: 320px;
+        padding: 14px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: rgba(5, 11, 24, 0.32);
+      }
+
+      .timeline-chart svg {
+        width: 100%;
+        height: 260px;
+        overflow: visible;
+      }
+
+      .timeline-chart text {
+        fill: var(--muted);
+        font-size: 9px;
+      }
+
+      .timeline-decay {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 8px;
+        margin-top: 12px;
+        padding: 10px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-small);
+        color: var(--muted);
+        font-size: 11px;
+      }
+
+      .timeline-decay input {
+        grid-column: 1 / -1;
+        width: 100%;
+        accent-color: var(--purple);
+      }
+
+      .matrix-stage {
+        position: relative;
+        min-height: 570px;
+        margin: 18px 10px 10px 48px;
+        border-left: 1px solid var(--muted);
+        border-bottom: 1px solid var(--muted);
+        background:
+          linear-gradient(90deg, transparent 49.9%, var(--border) 50%, transparent 50.1%),
+          linear-gradient(transparent 49.9%, var(--border) 50%, transparent 50.1%),
+          radial-gradient(circle at 75% 25%, rgba(52, 211, 153, 0.08), transparent 38%),
+          radial-gradient(circle at 25% 75%, rgba(245, 158, 11, 0.07), transparent 38%);
+      }
+
+      .matrix-axis-label {
+        position: absolute;
+        color: var(--muted);
+        font-size: 11px;
+        text-transform: uppercase;
+      }
+
+      .matrix-axis-label-x {
+        right: 0;
+        bottom: -30px;
+      }
+
+      .matrix-axis-label-y {
+        top: 0;
+        left: -42px;
+        writing-mode: vertical-rl;
+        transform: rotate(180deg);
+      }
+
+      .matrix-outcome {
+        position: absolute;
+        display: grid;
+        width: var(--matrix-size);
+        aspect-ratio: 1;
+        place-items: center;
+        border: 1px solid var(--outcome-color);
+        border-radius: 50%;
+        background: color-mix(in srgb, var(--outcome-color) 12%, rgba(7, 13, 28, 0.94));
+        box-shadow: 0 0 24px color-mix(in srgb, var(--outcome-color) 28%, transparent);
+        transform: translate(-50%, 50%);
+        text-align: center;
+      }
+
+      .matrix-outcome strong {
+        font-size: clamp(14px, 1.8vw, 26px);
+      }
+
+      .matrix-outcome span {
+        position: absolute;
+        top: 100%;
+        width: 150px;
+        margin-top: 6px;
+        color: var(--text);
+        font-size: 10px;
+      }
+
+      .simulation-summary {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 1px;
+        margin-bottom: 12px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+      }
+
+      .simulation-summary div {
+        padding: 12px;
+        background: rgba(7, 12, 26, 0.36);
+        text-align: center;
+      }
+
+      .simulation-summary span {
+        display: block;
+        color: var(--muted);
+        font-size: 10px;
+        text-transform: uppercase;
+      }
+
+      .simulation-summary strong {
+        display: block;
+        margin-top: 5px;
+        font-size: 22px;
+      }
+
+      .simulation-table {
+        display: grid;
+        gap: 1px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+      }
+
+      .simulation-row {
+        display: grid;
+        grid-template-columns: 38px minmax(160px, 1.4fr) minmax(130px, 0.8fr) minmax(150px, 1fr);
+        align-items: center;
+        gap: 12px;
+        min-height: 78px;
+        padding: 10px 12px;
+        background: rgba(7, 12, 26, 0.34);
+      }
+
+      .simulation-row + .simulation-row {
+        border-top: 1px solid var(--border);
+      }
+
+      .simulation-row [data-probability] {
+        color: var(--outcome-color);
+        font-size: 21px;
+        font-weight: 750;
+      }
+
+      .simulation-drivers {
+        color: var(--muted);
+        font-size: 10px;
+      }
+
+      .delta-positive {
+        color: var(--green);
+      }
+
+      .delta-negative {
+        color: var(--red);
+      }
+
+      html[data-density="compact"] .side-panel,
+      html[data-density="compact"] .view {
+        padding: 10px;
+      }
+
+      html[data-density="compact"] .factor-control {
+        margin-bottom: 10px;
+      }
+
       @keyframes loading-progress {
         from {
           transform: translateX(-10%);
@@ -1059,6 +1755,9 @@
           activeTab: "galaxy",
           factors: {},
           userEvents: [],
+          evidenceFilter: "supporting",
+          selectedOutcomeId: null,
+          baselineProbabilities: {},
           errorAction: null,
         };
 
@@ -1255,6 +1954,9 @@
             state.lastSuccessfulAt = new Date();
             activateAnalysisWorkspace();
           } catch (error) {
+            if (state.analysis && state.lastSuccessfulAt) {
+              document.querySelector("#metric-last-run").textContent = "Stale · update recommended";
+            }
             showError(error);
           } finally {
             setLoading(false);
@@ -1309,6 +2011,17 @@
         }
 
         function activateAnalysisWorkspace() {
+          state.factors = Object.fromEntries(
+            (state.analysis.factors ?? []).map((factor) => [factor.id, factor.value ?? 0.5]),
+          );
+          state.baselineProbabilities = Object.fromEntries(
+            (state.analysis.outcomes ?? []).map((outcome) => [
+              outcome.id,
+              outcome.current_probability,
+            ]),
+          );
+          state.userEvents = [];
+          state.selectedOutcomeId = state.analysis.outcomes?.[0]?.id ?? null;
           elements.emptyState.classList.add("hidden");
           elements.viewRoot.classList.remove("hidden");
           elements.leftRail.classList.remove("hidden");
@@ -1319,6 +2032,10 @@
             tab.disabled = false;
           });
           updateMetrics();
+          renderFactorControls();
+          renderEventControls();
+          renderEvidencePanel();
+          selectTab(state.activeTab);
           showToast("Live analysis loaded.");
         }
 
@@ -1346,6 +2063,7 @@
             tab.setAttribute("aria-selected", String(selected));
             tab.tabIndex = selected ? 0 : -1;
           });
+          renderActiveView();
         }
 
         function handleTabKeydown(event, index) {
@@ -1360,6 +2078,787 @@
           if (event.key === "End") nextIndex = TAB_IDS.length - 1;
           elements.tabs[nextIndex].focus();
           elements.tabs[nextIndex].click();
+        }
+
+        function renderActiveView() {
+          if (!state.analysis) return;
+          const renderers = {
+            galaxy: renderGalaxyView,
+            ranked: renderRankedView,
+            tree: renderTreeView,
+            timeline: renderTimelineView,
+            matrix: renderMatrixView,
+            simulation: renderSimulationView,
+          };
+          elements.viewRoot.replaceChildren(renderers[state.activeTab]());
+        }
+
+        function renderGalaxyView() {
+          const { view, body } = createView(
+            "Probability field",
+            "Outcome area represents probability; color and labels preserve confidence and direction.",
+          );
+          const stage = createElement("div", "galaxy-stage");
+          const placements = [
+            [4, 9, 2, 8],
+            [8, 12, 2, 6],
+            [2, 6, 6, 10],
+            [7, 10, 7, 10],
+            [5, 8, 8, 11],
+            [9, 12, 7, 10],
+            [1, 4, 2, 5],
+            [3, 6, 1, 4],
+          ];
+
+          state.analysis.outcomes.forEach((outcome, index) => {
+            const probability = displayProbability(outcome);
+            const orb = createElement("article", "outcome-orb");
+            orb.dataset.outcomeId = outcome.id;
+            orb.style.setProperty("--orb-color", outcomeColor(outcome, index));
+            orb.style.setProperty(
+              "--orb-size",
+              `${Math.max(94, Math.min(245, 84 + probability * 3.2))}px`,
+            );
+            const placement = placements[index] ?? [3, 7, 3, 7];
+            orb.style.gridColumn = `${placement[0]} / ${placement[1]}`;
+            orb.style.gridRow = `${placement[2]} / ${placement[3]}`;
+            const title = createElement("strong", "", outcome.title);
+            const probabilityValue = createElement("span", "", `${probability.toFixed(1)}%`);
+            probabilityValue.dataset.probability = "";
+            probabilityValue.dataset.probabilityValue = "";
+            const confidence = createElement(
+              "small",
+              "",
+              `${confidenceLabel(outcome.confidence)} confidence`,
+            );
+            orb.append(title, probabilityValue, confidence);
+            stage.append(orb);
+          });
+
+          body.append(stage);
+          return view;
+        }
+
+        function renderRankedView() {
+          const { view, body } = createView(
+            "Ranked outcomes",
+            "Sorted by recalculated probability with confidence and leading drivers.",
+          );
+          const list = createElement("div", "ranked-list");
+          const sorted = [...state.analysis.outcomes].sort(
+            (left, right) => right.current_probability - left.current_probability,
+          );
+
+          sorted.forEach((outcome, index) => {
+            const probability = displayProbability(outcome);
+            const row = createElement("button", "ranked-row");
+            row.type = "button";
+            row.dataset.outcomeId = outcome.id;
+            row.style.setProperty("--outcome-color", outcomeColor(outcome, index));
+            row.setAttribute("aria-label", `Explain ${outcome.title}`);
+
+            const rank = createElement("span", "rank-number", String(index + 1));
+            const copy = createElement("span", "ranked-copy");
+            copy.append(
+              createElement("strong", "", outcome.title),
+              createElement("span", "", outcome.description),
+            );
+            const probabilityCell = createElement("span", "probability-cell");
+            const probabilityText = createElement(
+              "strong",
+              "",
+              `${probability.toFixed(1)}%`,
+            );
+            probabilityText.dataset.probability = "";
+            probabilityText.dataset.probabilityValue = "";
+            const track = createElement("span", "probability-track");
+            const fill = createElement("span");
+            fill.style.setProperty("--probability", `${probability}%`);
+            track.append(fill);
+            probabilityCell.append(probabilityText, track);
+            const confidence = createElement("span", "confidence-cell");
+            confidence.append(
+              createElement("strong", "", `${Math.round(outcome.confidence * 100)}%`),
+              document.createTextNode(confidenceLabel(outcome.confidence)),
+            );
+            row.append(rank, copy, probabilityCell, confidence);
+            row.addEventListener("click", () => {
+              state.selectedOutcomeId = outcome.id;
+              renderActiveView();
+            });
+            list.append(row);
+          });
+          body.append(list);
+
+          const selected =
+            sorted.find((outcome) => outcome.id === state.selectedOutcomeId) ?? sorted[0];
+          if (selected) body.append(renderExplainability(selected));
+          body.append(createElement("p", "coverage-note", state.analysis.coverage_note));
+          return view;
+        }
+
+        function renderExplainability(outcome) {
+          const panel = createElement("section", "explainability");
+          panel.append(createElement("h3", "", `Why ${outcome.title}`));
+          const list = createElement("ul", "driver-list");
+          topDrivers(outcome).forEach(([factorId, coefficient]) => {
+            const label =
+              state.analysis.factors.find((factor) => factor.id === factorId)?.label ??
+              titleFromId(factorId);
+            const item = createElement("li");
+            item.append(
+              createElement("span", "", label),
+              createElement(
+                "strong",
+                coefficient >= 0 ? "delta-positive" : "delta-negative",
+                `${coefficient >= 0 ? "+" : ""}${coefficient.toFixed(2)} logit`,
+              ),
+            );
+            list.append(item);
+          });
+          panel.append(list);
+          return panel;
+        }
+
+        function renderTreeView() {
+          const { view, body } = createView(
+            "Scenario tree",
+            "The resolved question branches through the strongest factors into evidence-grounded outcomes.",
+          );
+          const tree = createElement("div", "tree-map");
+          const root = createElement("div", "tree-root");
+          root.append(
+            createElement("strong", "", state.analysis.resolved_question),
+            createElement("span", "", state.analysis.time_horizon.label),
+          );
+
+          const branchColumn = createElement("div", "tree-branch-column");
+          const strongestFactors = aggregateFactorStrengths().slice(0, 3);
+          strongestFactors.forEach(([factorId, strength], index) => {
+            const branch = createElement("div", "tree-branch");
+            branch.style.setProperty("--node-color", [ "var(--green)", "var(--orange)", "var(--blue)" ][index]);
+            branch.append(
+              createElement("strong", "", titleFromId(factorId)),
+              createElement("span", "", `Contribution strength ${strength.toFixed(2)}`),
+            );
+            branchColumn.append(branch);
+          });
+
+          const outcomeColumn = createElement("div", "tree-outcome-column");
+          state.analysis.outcomes.forEach((outcome, index) => {
+            const item = createElement("article", "tree-outcome");
+            item.dataset.treeOutcome = outcome.id;
+            item.style.setProperty("--node-color", outcomeColor(outcome, index));
+            item.append(
+              createElement("output", "", `${displayProbability(outcome).toFixed(1)}%`),
+              createElement("strong", "", outcome.title),
+              createElement("span", "", `${confidenceLabel(outcome.confidence)} confidence`),
+            );
+            outcomeColumn.append(item);
+          });
+
+          tree.append(root, branchColumn, outcomeColumn);
+          body.append(tree);
+          return view;
+        }
+
+        function renderTimelineView() {
+          const { view, body } = createView(
+            "Evidence timeline",
+            "Research milestones and user events across the analysis horizon.",
+          );
+          const stage = createElement("div", "timeline-stage");
+          const axis = createElement("section", "timeline-axis");
+          const start = new Date(state.analysis.time_horizon.start);
+          const end = new Date(state.analysis.time_horizon.end);
+          const labels = createElement("div", "timeline-labels");
+          labels.append(
+            createElement("span", "", String(start.getUTCFullYear())),
+            createElement("span", "", "Analysis horizon"),
+            createElement("span", "", String(end.getUTCFullYear())),
+          );
+          const eventLayer = createElement("div", "timeline-events");
+          const timelineEvents = [
+            ...(state.analysis.events ?? []),
+            ...state.userEvents.map((event) => ({ ...event, kind: "user" })),
+          ];
+          timelineEvents.forEach((event, index) => {
+            const marker = createElement("div", "timeline-event", event.label);
+            const position = eventDatePosition(event.date, start, end, index, timelineEvents.length);
+            marker.style.left = `${position * 100}%`;
+            marker.style.setProperty(
+              "--event-color",
+              event.kind === "user" ? "var(--purple)" : "var(--cyan)",
+            );
+            eventLayer.append(marker);
+          });
+          axis.append(labels, eventLayer);
+
+          const chart = createElement("section", "timeline-chart");
+          chart.append(renderProbabilityChart());
+          stage.append(axis, chart);
+
+          state.userEvents.forEach((event) => {
+            const decay = createElement("label", "timeline-decay");
+            const output = createElement(
+              "output",
+              "",
+              `Time decay ${event.time_decay.toFixed(2)}`,
+            );
+            const slider = createElement("input");
+            slider.type = "range";
+            slider.min = "0";
+            slider.max = "1";
+            slider.step = "0.01";
+            slider.value = String((event.time_decay - 0.2) / 0.8);
+            slider.setAttribute("aria-label", `${event.label} timeline position`);
+            slider.addEventListener("input", () => {
+              event.time_decay = 0.2 + 0.8 * Number(slider.value);
+              recalculateForecast();
+            });
+            decay.append(createElement("span", "", event.label), output, slider);
+            stage.append(decay);
+          });
+
+          body.append(stage);
+          return view;
+        }
+
+        function renderProbabilityChart() {
+          const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+          svg.setAttribute("viewBox", "0 0 800 260");
+          svg.setAttribute("role", "img");
+          svg.setAttribute("aria-label", "Top outcome probability trend lines");
+          [0, 25, 50, 75, 100].forEach((percent) => {
+            const y = 230 - percent * 2;
+            const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            line.setAttribute("x1", "42");
+            line.setAttribute("x2", "780");
+            line.setAttribute("y1", String(y));
+            line.setAttribute("y2", String(y));
+            line.setAttribute("stroke", "rgba(148,163,255,.12)");
+            svg.append(line);
+            const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            label.setAttribute("x", "4");
+            label.setAttribute("y", String(y + 3));
+            label.textContent = `${percent}%`;
+            svg.append(label);
+          });
+
+          [...state.analysis.outcomes]
+            .sort((left, right) => right.current_probability - left.current_probability)
+            .slice(0, 3)
+            .forEach((outcome, index) => {
+              const baseline = (state.baselineProbabilities[outcome.id] ?? 0) * 100;
+              const current = outcome.current_probability * 100;
+              const points = Array.from({ length: 7 }, (_, pointIndex) => {
+                const progress = pointIndex / 6;
+                const curve =
+                  baseline +
+                  (current - baseline) * progress +
+                  Math.sin(progress * Math.PI * 2 + index) * (2.2 - index * 0.4);
+                return `${42 + pointIndex * 123},${230 - Math.max(0, Math.min(100, curve)) * 2}`;
+              }).join(" ");
+              const polyline = document.createElementNS(
+                "http://www.w3.org/2000/svg",
+                "polyline",
+              );
+              polyline.setAttribute("points", points);
+              polyline.setAttribute("fill", "none");
+              polyline.setAttribute("stroke", outcomeColor(outcome, index));
+              polyline.setAttribute("stroke-width", "2.5");
+              polyline.setAttribute("vector-effect", "non-scaling-stroke");
+              svg.append(polyline);
+            });
+          return svg;
+        }
+
+        function renderMatrixView() {
+          const { view, body } = createView(
+            "Outcome impact matrix",
+            "Likelihood is plotted against impact; bubble size reflects confidence-weighted evidence.",
+          );
+          const matrix = createElement("div", "matrix-stage");
+          matrix.append(
+            createElement("span", "matrix-axis-label matrix-axis-label-x", "Impact"),
+            createElement("span", "matrix-axis-label matrix-axis-label-y", "Likelihood"),
+          );
+          state.analysis.outcomes.forEach((outcome, index) => {
+            const probability = displayProbability(outcome);
+            const bubble = createElement("article", "matrix-outcome");
+            bubble.dataset.matrixOutcome = outcome.id;
+            bubble.style.left = `${Math.max(7, Math.min(93, outcome.impact * 100))}%`;
+            bubble.style.bottom = `${Math.max(7, Math.min(93, probability))}%`;
+            bubble.style.setProperty("--outcome-color", outcomeColor(outcome, index));
+            bubble.style.setProperty(
+              "--matrix-size",
+              `${Math.max(62, 54 + probability * outcome.confidence * 1.8)}px`,
+            );
+            bubble.append(
+              createElement("strong", "", `${probability.toFixed(1)}%`),
+              createElement("span", "", outcome.title),
+            );
+            matrix.append(bubble);
+          });
+          body.append(matrix);
+          return view;
+        }
+
+        function renderSimulationView() {
+          const { view, body } = createView(
+            "Simulation results",
+            "The same logit and softmax engine recalculates every outcome from active assumptions and events.",
+          );
+          const summary = createElement("div", "simulation-summary");
+          [
+            ["Total probability", "100.0%"],
+            ["Outcomes considered", String(state.analysis.outcomes.length)],
+            ["Active events", String(state.userEvents.filter((event) => event.active).length)],
+          ].forEach(([label, value]) => {
+            const item = createElement("div");
+            item.append(createElement("span", "", label), createElement("strong", "", value));
+            summary.append(item);
+          });
+          const table = createElement("div", "simulation-table");
+          [...state.analysis.outcomes]
+            .sort((left, right) => right.current_probability - left.current_probability)
+            .forEach((outcome, index) => {
+              const row = createElement("article", "simulation-row");
+              row.dataset.outcomeId = outcome.id;
+              row.style.setProperty("--outcome-color", outcomeColor(outcome, index));
+              const rank = createElement("strong", "rank-number", String(index + 1));
+              const copy = createElement("div", "ranked-copy");
+              copy.append(
+                createElement("strong", "", outcome.title),
+                createElement("span", "", outcome.description),
+              );
+              const probability = createElement(
+                "div",
+                "",
+                `${displayProbability(outcome).toFixed(1)}%`,
+              );
+              probability.dataset.probability = "";
+              probability.dataset.probabilityValue = "";
+              const baseline = state.baselineProbabilities[outcome.id] ?? outcome.current_probability;
+              const delta = (outcome.current_probability - baseline) * 100;
+              const drivers = createElement("div", "simulation-drivers");
+              drivers.append(
+                createElement(
+                  "strong",
+                  delta >= 0 ? "delta-positive" : "delta-negative",
+                  `${delta >= 0 ? "+" : ""}${delta.toFixed(1)} points`,
+                ),
+                createElement(
+                  "div",
+                  "",
+                  topDrivers(outcome)
+                    .slice(0, 2)
+                    .map(([factorId]) => titleFromId(factorId))
+                    .join(" · "),
+                ),
+              );
+              row.append(rank, copy, probability, drivers);
+              table.append(row);
+            });
+          body.append(summary, table);
+          return view;
+        }
+
+        function createView(title, description) {
+          const view = createElement("section", "view");
+          const header = createElement("header", "view-header");
+          const copy = createElement("div");
+          copy.append(createElement("h2", "", title), createElement("p", "", description));
+          const total = createElement("div", "total-probability");
+          total.append(
+            document.createTextNode("Total probability"),
+            createElement("strong", "", "100.0%"),
+          );
+          header.append(copy, total);
+          const body = createElement("div");
+          view.append(header, body);
+          return { view, body };
+        }
+
+        function renderFactorControls() {
+          elements.factorControls.replaceChildren();
+          const section = createElement("section", "control-section");
+          const heading = createElement("h3", "control-heading");
+          heading.append(
+            createElement("span", "", "Assumption sliders"),
+            createResetFactorsButton(),
+          );
+          section.append(heading);
+
+          state.analysis.factors.forEach((factor) => {
+            const wrapper = createElement("div", "factor-control");
+            const label = createElement("label", "", factor.label);
+            const inputId = `factor-${factor.id}`;
+            label.htmlFor = inputId;
+            const output = createElement(
+              "output",
+              "",
+              `${Math.round((state.factors[factor.id] ?? 0.5) * 100)}%`,
+            );
+            output.htmlFor = inputId;
+            const slider = createElement("input");
+            slider.id = inputId;
+            slider.type = "range";
+            slider.min = "0";
+            slider.max = "1";
+            slider.step = "0.01";
+            slider.value = String(state.factors[factor.id] ?? 0.5);
+            slider.setAttribute("aria-label", factor.label);
+            slider.addEventListener("input", () => {
+              state.factors[factor.id] = Number(slider.value);
+              output.textContent = `${Math.round(Number(slider.value) * 100)}%`;
+              recalculateForecast();
+            });
+            wrapper.append(label, output, slider);
+            section.append(wrapper);
+          });
+          elements.factorControls.append(section);
+        }
+
+        function createResetFactorsButton() {
+          const button = createElement("button", "icon-button", "Reset");
+          button.type = "button";
+          button.setAttribute("aria-label", "Reset assumptions");
+          button.addEventListener("click", () => {
+            Object.keys(state.factors).forEach((factorId) => {
+              state.factors[factorId] = 0.5;
+            });
+            renderFactorControls();
+            recalculateForecast();
+          });
+          return button;
+        }
+
+        function renderEventControls() {
+          elements.eventControls.replaceChildren();
+          const entrySection = createElement("section", "control-section");
+          entrySection.append(createElement("h3", "control-heading", "Add event"));
+          const entry = createElement("div", "event-entry");
+          const label = createElement("label", "visually-hidden", "New event");
+          label.htmlFor = "new-event-input";
+          const input = createElement("input", "field");
+          input.id = "new-event-input";
+          input.type = "text";
+          input.placeholder = "Describe a future event";
+          input.setAttribute("aria-label", "New event");
+          const addButton = createElement("button", "button button-primary", "Add event");
+          addButton.type = "button";
+          addButton.addEventListener("click", async () => {
+            const eventLabel = input.value.trim().replace(/\s+/g, " ");
+            if (!eventLabel || eventLabel.length > 180) {
+              showError({
+                code: "E_INPUT_INVALID",
+                message: "Event labels must contain between 1 and 180 characters.",
+                action: "edit_event",
+              });
+              return;
+            }
+            addButton.disabled = true;
+            try {
+              const result = await apiFetch("/api/simulate/event-impact", {
+                method: "POST",
+                body: {
+                  event_label: eventLabel,
+                  event_date: null,
+                  current_payload_summary: {
+                    analysis_id: state.analysis.analysis_id,
+                    resolved_question: state.analysis.resolved_question,
+                    outcomes: state.analysis.outcomes.map((outcome) => ({
+                      id: outcome.id,
+                      title: outcome.title,
+                    })),
+                    factor_ids: state.analysis.factors.map((factor) => factor.id),
+                  },
+                },
+              });
+              state.userEvents.push({
+                id: crypto.randomUUID(),
+                label: result.event_label,
+                date: result.event_date,
+                active: true,
+                time_decay: 1,
+                impacts: result.impacts,
+                explanations: result.explanations,
+              });
+              input.value = "";
+              renderEventControls();
+              recalculateForecast();
+            } catch (error) {
+              showError(error);
+            } finally {
+              addButton.disabled = false;
+            }
+          });
+          entry.append(label, input, addButton);
+          entrySection.append(entry);
+
+          const activeSection = createElement("section", "control-section");
+          activeSection.append(
+            createElement(
+              "h3",
+              "control-heading",
+              `Active events (${state.userEvents.filter((event) => event.active).length})`,
+            ),
+          );
+          if (state.userEvents.length === 0) {
+            activeSection.append(
+              createElement(
+                "p",
+                "setting-help",
+                "No user events. Add one to test a concrete change in conditions.",
+              ),
+            );
+          } else {
+            state.userEvents.forEach((event) => {
+              const card = createElement("article", "event-card");
+              card.dataset.userEvent = event.id;
+              const head = createElement("div", "event-card-head");
+              const toggle = createElement("input");
+              toggle.type = "checkbox";
+              toggle.checked = event.active;
+              toggle.setAttribute("aria-label", `Enable ${event.label}`);
+              const copy = createElement("div");
+              copy.append(
+                createElement("div", "event-card-title", event.label),
+                createElement("div", "event-state", event.active ? "Active" : "Inactive"),
+              );
+              const remove = createElement("button", "button event-delete", "Delete");
+              remove.type = "button";
+              remove.setAttribute("aria-label", "Delete event");
+              toggle.addEventListener("change", () => {
+                event.active = toggle.checked;
+                renderEventControls();
+                recalculateForecast();
+              });
+              remove.addEventListener("click", () => {
+                state.userEvents = state.userEvents.filter(
+                  (candidate) => candidate.id !== event.id,
+                );
+                renderEventControls();
+                recalculateForecast();
+              });
+              head.append(toggle, copy, remove);
+              card.append(head);
+              activeSection.append(card);
+            });
+          }
+          elements.eventControls.append(entrySection, activeSection);
+        }
+
+        function renderEvidencePanel() {
+          elements.evidencePanel.replaceChildren();
+          const tabs = createElement("div", "evidence-tabs");
+          ["supporting", "opposing", "neutral"].forEach((filter) => {
+            const button = createElement(
+              "button",
+              "evidence-tab",
+              filter[0].toUpperCase() + filter.slice(1),
+            );
+            button.type = "button";
+            button.setAttribute("aria-selected", String(state.evidenceFilter === filter));
+            button.addEventListener("click", () => {
+              state.evidenceFilter = filter;
+              renderEvidencePanel();
+            });
+            tabs.append(button);
+          });
+          const evidenceList = createElement("ul", "evidence-list");
+          const matchingEvidence = state.analysis.evidence_items
+            .filter((item) => item.stance === state.evidenceFilter)
+            .slice(0, 6);
+          if (matchingEvidence.length === 0) {
+            evidenceList.append(
+              createElement("li", "evidence-item", `No ${state.evidenceFilter} evidence returned.`),
+            );
+          } else {
+            matchingEvidence.forEach((item) => {
+              const entry = createElement("li", "evidence-item");
+              entry.append(createElement("p", "", item.claim));
+              const meta = createElement("div", "evidence-meta");
+              meta.append(
+                createElement("span", "", item.source_ids.join(", ")),
+                createElement("span", "", `${Math.round(item.strength * 100)}% strength`),
+              );
+              entry.append(meta);
+              evidenceList.append(entry);
+            });
+          }
+
+          const sourceHeading = createElement("h3", "evidence-section-title", "Top sources");
+          const sourceList = createElement("ul", "source-list");
+          state.analysis.sources.slice(0, 8).forEach((source) => {
+            const item = createElement("li", "source-item");
+            const link = createElement("a", "", source.title);
+            link.href = safeExternalUrl(source.url);
+            link.target = "_blank";
+            link.rel = "noopener noreferrer";
+            const meta = createElement("div", "source-meta");
+            meta.append(
+              createElement("span", "", source.domain),
+              createElement("span", "", `${Math.round(source.quality_score * 100)} quality`),
+            );
+            item.append(link, meta);
+            sourceList.append(item);
+          });
+
+          const contradictionHeading = createElement(
+            "h3",
+            "evidence-section-title",
+            "Contradictions",
+          );
+          const contradictionList = createElement("ul", "contradiction-list");
+          (state.analysis.contradictions ?? []).forEach((contradiction) => {
+            const item = createElement("li", "contradiction-item");
+            item.append(
+              createElement("p", "", contradiction.topic),
+              createElement(
+                "div",
+                "evidence-meta",
+                `${contradiction.resolution.replaceAll("_", " ")} · ${contradiction.source_ids.join(", ")}`,
+              ),
+            );
+            contradictionList.append(item);
+          });
+
+          elements.evidencePanel.append(
+            tabs,
+            evidenceList,
+            sourceHeading,
+            sourceList,
+            contradictionHeading,
+            contradictionList,
+          );
+        }
+
+        function recalculateForecast() {
+          const logits = state.analysis.outcomes.map((outcome) => {
+            let logit = outcome.base_logit;
+            Object.entries(outcome.factor_coefficients).forEach(
+              ([factorId, coefficient]) => {
+                logit += coefficient * ((state.factors[factorId] ?? 0.5) - 0.5);
+              },
+            );
+            state.userEvents.forEach((event) => {
+              if (event.active) {
+                logit += (event.impacts[outcome.id] ?? 0) * event.time_decay;
+              }
+            });
+            return logit;
+          });
+          const maximum = Math.max(...logits);
+          const exponentials = logits.map((logit) => Math.exp(logit - maximum));
+          const denominator = exponentials.reduce((sum, value) => sum + value, 0);
+          const raw = exponentials.map((value) => value / denominator);
+          const displayed = largestRemainderInTenths(raw);
+          state.analysis.outcomes.forEach((outcome, index) => {
+            outcome.previous_probability = outcome.current_probability;
+            outcome.current_probability = Number(raw[index].toFixed(6));
+            outcome.display_probability = displayed[index];
+          });
+          state.analysis.probability_model.raw_probabilities = Object.fromEntries(
+            state.analysis.outcomes.map((outcome) => [
+              outcome.id,
+              outcome.current_probability,
+            ]),
+          );
+          renderActiveView();
+        }
+
+        function largestRemainderInTenths(probabilities) {
+          const floors = probabilities.map((value) => Math.floor(value * 1000));
+          const remaining = 1000 - floors.reduce((sum, value) => sum + value, 0);
+          const ranked = probabilities
+            .map((value, index) => ({
+              index,
+              remainder: value * 1000 - floors[index],
+            }))
+            .sort(
+              (left, right) => right.remainder - left.remainder || left.index - right.index,
+            );
+          for (let index = 0; index < remaining; index += 1) {
+            floors[ranked[index].index] += 1;
+          }
+          return floors.map((value) => value / 10);
+        }
+
+        function aggregateFactorStrengths() {
+          const scores = {};
+          state.analysis.outcomes.forEach((outcome) => {
+            Object.entries(outcome.factor_coefficients).forEach(([factorId, coefficient]) => {
+              scores[factorId] = (scores[factorId] ?? 0) + Math.abs(coefficient);
+            });
+          });
+          return Object.entries(scores).sort((left, right) => right[1] - left[1]);
+        }
+
+        function topDrivers(outcome) {
+          return Object.entries(outcome.factor_coefficients).sort(
+            (left, right) => Math.abs(right[1]) - Math.abs(left[1]),
+          );
+        }
+
+        function displayProbability(outcome) {
+          return Number.isFinite(outcome.display_probability)
+            ? outcome.display_probability
+            : outcome.current_probability * 100;
+        }
+
+        function confidenceLabel(confidence) {
+          if (confidence >= 0.75) return "High";
+          if (confidence >= 0.55) return "Medium";
+          if (confidence >= 0.35) return "Low";
+          return "Very low";
+        }
+
+        function outcomeColor(outcome, index) {
+          const colors = {
+            positive: "var(--green)",
+            neutral: "var(--blue)",
+            negative: "var(--red)",
+            uncertain: "var(--orange)",
+          };
+          return (
+            colors[outcome.category] ??
+            ["var(--purple)", "var(--blue)", "var(--cyan)", "var(--orange)", "var(--red)"][
+              index % 5
+            ]
+          );
+        }
+
+        function titleFromId(identifier) {
+          return String(identifier)
+            .split("_")
+            .map((word) => word[0].toUpperCase() + word.slice(1))
+            .join(" ");
+        }
+
+        function eventDatePosition(date, start, end, index, total) {
+          if (!date || Number.isNaN(Date.parse(date))) {
+            return (index + 1) / (total + 1);
+          }
+          const position = (Date.parse(date) - start.getTime()) / (end.getTime() - start.getTime());
+          return Math.max(0.04, Math.min(0.96, position));
+        }
+
+        function safeExternalUrl(rawUrl) {
+          try {
+            const url = new URL(rawUrl);
+            return url.protocol === "https:" ? url.toString() : "about:blank";
+          } catch {
+            return "about:blank";
+          }
+        }
+
+        function createElement(tagName, className = "", text = null) {
+          const element = document.createElement(tagName);
+          if (className) element.className = className;
+          if (text !== null) element.textContent = text;
+          return element;
         }
 
         function showError(error) {
