@@ -9,7 +9,7 @@
     "test:e2e": "playwright test",
     "check:csp": "node scripts/verify-csp.mjs",
     "check:data": "node scripts/check-production-data.mjs",
-    "check:syntax": "node --check proxy/worker.js && node --check proxy/agents.js && node --check proxy/providers.js && node --check proxy/probability.js && node --check proxy/validation.js",
+    "check:syntax": "node scripts/check-syntax.mjs",
     "check": "npm run check:syntax && npm run check:csp && npm run check:data",
     "dev": "wrangler dev",
     "deploy": "wrangler deploy"
