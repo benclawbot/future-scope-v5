@@ -1,0 +1,1436 @@
+<!doctype html>
+<html lang="en" data-theme="dark" data-density="comfortable">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark light" />
+    <title>Future•Scope — Live probability intelligence</title>
+    <style id="app-styles">
+      :root {
+        --bg-0: #060814;
+        --bg-1: #0b1020;
+        --surface: rgba(14, 21, 39, 0.96);
+        --panel: rgba(18, 24, 46, 0.88);
+        --panel-strong: rgba(25, 32, 60, 0.96);
+        --border: rgba(148, 163, 255, 0.22);
+        --border-strong: rgba(148, 163, 255, 0.38);
+        --text: #f5f7ff;
+        --muted: #aeb9d6;
+        --subtle: #7f8cad;
+        --purple: #8b5cf6;
+        --blue: #38bdf8;
+        --cyan: #22d3ee;
+        --green: #34d399;
+        --orange: #f59e0b;
+        --red: #fb7185;
+        --shadow: 0 24px 70px rgba(0, 0, 0, 0.34);
+        --radius-small: 8px;
+        --radius: 12px;
+        --radius-large: 18px;
+        --focus: 0 0 0 3px rgba(56, 189, 248, 0.45);
+        --transition: 180ms cubic-bezier(0.22, 1, 0.36, 1);
+      }
+
+      html[data-theme="light"] {
+        --bg-0: #eef3fb;
+        --bg-1: #f8faff;
+        --surface: rgba(255, 255, 255, 0.98);
+        --panel: rgba(250, 252, 255, 0.96);
+        --panel-strong: rgba(241, 245, 253, 0.99);
+        --border: rgba(39, 64, 112, 0.2);
+        --border-strong: rgba(39, 64, 112, 0.35);
+        --text: #10172a;
+        --muted: #445170;
+        --subtle: #66718d;
+        --shadow: 0 20px 60px rgba(45, 65, 105, 0.16);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        min-width: 320px;
+        background: var(--bg-0);
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        color: var(--text);
+        background:
+          radial-gradient(circle at 28% -15%, rgba(139, 92, 246, 0.2), transparent 31rem),
+          radial-gradient(circle at 88% 8%, rgba(34, 211, 238, 0.11), transparent 28rem),
+          linear-gradient(145deg, var(--bg-0), var(--bg-1));
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        line-height: 1.45;
+      }
+
+      button,
+      input,
+      select {
+        font: inherit;
+      }
+
+      button,
+      select {
+        cursor: pointer;
+      }
+
+      button:focus-visible,
+      input:focus-visible,
+      select:focus-visible,
+      summary:focus-visible {
+        outline: none;
+        box-shadow: var(--focus);
+      }
+
+      button:disabled {
+        cursor: not-allowed;
+        opacity: 0.42;
+      }
+
+      .visually-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      .app-shell {
+        width: min(100%, 1920px);
+        margin: 0 auto;
+        padding: 16px;
+      }
+
+      .app-header {
+        display: grid;
+        grid-template-columns: minmax(210px, 0.8fr) minmax(360px, 3fr) auto;
+        align-items: center;
+        gap: 18px;
+        min-height: 66px;
+        margin-bottom: 12px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+      }
+
+      .brand-mark {
+        display: grid;
+        width: 36px;
+        height: 36px;
+        place-items: center;
+        border: 1px solid rgba(139, 92, 246, 0.7);
+        border-radius: 50%;
+        color: #d8ccff;
+        background:
+          radial-gradient(circle, rgba(139, 92, 246, 0.48) 0 2px, transparent 3px),
+          conic-gradient(
+            from 45deg,
+            transparent,
+            rgba(56, 189, 248, 0.45),
+            transparent,
+            rgba(139, 92, 246, 0.55),
+            transparent
+          );
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: -0.04em;
+      }
+
+      .brand h1 {
+        margin: 0;
+        font-size: 17px;
+        font-weight: 760;
+        letter-spacing: 0.12em;
+        line-height: 1.1;
+        text-transform: uppercase;
+      }
+
+      .brand p {
+        margin: 4px 0 0;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .prompt-cluster {
+        display: grid;
+        grid-template-columns: minmax(220px, 1fr) 112px 110px;
+        gap: 8px;
+        min-width: 0;
+      }
+
+      .field,
+      .select-field {
+        width: 100%;
+        min-height: 42px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-small);
+        color: var(--text);
+        background: rgba(7, 12, 25, 0.48);
+        transition:
+          border-color var(--transition),
+          background var(--transition);
+      }
+
+      html[data-theme="light"] .field,
+      html[data-theme="light"] .select-field {
+        background: rgba(255, 255, 255, 0.72);
+      }
+
+      .field {
+        padding: 0 14px;
+      }
+
+      .select-field {
+        padding: 0 10px;
+      }
+
+      .field:hover,
+      .select-field:hover {
+        border-color: var(--border-strong);
+      }
+
+      .field::placeholder {
+        color: var(--muted);
+        opacity: 1;
+      }
+
+      .header-actions {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+      }
+
+      .button {
+        min-height: 40px;
+        padding: 0 14px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-small);
+        color: var(--text);
+        background: rgba(18, 24, 46, 0.72);
+        transition:
+          transform var(--transition),
+          border-color var(--transition),
+          background var(--transition);
+      }
+
+      .button:hover:not(:disabled) {
+        border-color: var(--border-strong);
+        background: var(--panel-strong);
+        transform: translateY(-1px);
+      }
+
+      .button-primary {
+        border-color: rgba(139, 92, 246, 0.8);
+        background: linear-gradient(135deg, #7046e8, #5023d7);
+        color: white;
+        font-weight: 650;
+      }
+
+      .button-danger {
+        border-color: rgba(251, 113, 133, 0.45);
+        color: #ffd2d9;
+      }
+
+      .tab-bar {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        min-height: 46px;
+        margin-left: 25%;
+        margin-right: 25%;
+        padding: 4px;
+        border-bottom: 1px solid var(--border);
+        overflow-x: auto;
+      }
+
+      .tab {
+        position: relative;
+        min-width: 84px;
+        min-height: 36px;
+        border: 0;
+        border-radius: 7px;
+        color: var(--muted);
+        background: transparent;
+      }
+
+      .tab[aria-selected="true"] {
+        color: var(--text);
+        background: rgba(139, 92, 246, 0.2);
+      }
+
+      .tab[aria-selected="true"]::after {
+        position: absolute;
+        right: 18px;
+        bottom: -4px;
+        left: 18px;
+        height: 2px;
+        border-radius: 2px;
+        background: var(--purple);
+        content: "";
+      }
+
+      .metric-strip {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 8px;
+        margin: 12px 0;
+      }
+
+      .metric {
+        min-height: 68px;
+        padding: 12px 14px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--panel);
+      }
+
+      .metric-label {
+        color: var(--muted);
+        font-size: 11px;
+      }
+
+      .metric-value {
+        display: block;
+        margin-top: 4px;
+        font-size: 23px;
+        font-variant-numeric: tabular-nums;
+        line-height: 1;
+      }
+
+      .workspace {
+        display: grid;
+        grid-template-columns: minmax(250px, 3fr) minmax(540px, 6fr) minmax(250px, 3fr);
+        gap: 8px;
+        min-height: calc(100vh - 156px);
+      }
+
+      .panel {
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--panel);
+        box-shadow: 0 14px 40px rgba(0, 0, 0, 0.12);
+      }
+
+      .side-panel {
+        padding: 14px;
+      }
+
+      .center-panel {
+        position: relative;
+        min-height: 680px;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at 50% 38%, rgba(71, 64, 160, 0.12), transparent 42%),
+          var(--surface);
+      }
+
+      .empty-state {
+        display: grid;
+        min-height: 680px;
+        padding: 28px;
+        place-items: center;
+        text-align: center;
+      }
+
+      .empty-state-copy {
+        max-width: 520px;
+      }
+
+      .empty-orbit {
+        position: relative;
+        width: 190px;
+        height: 190px;
+        margin: 0 auto 28px;
+        border: 1px solid rgba(139, 92, 246, 0.38);
+        border-radius: 50%;
+      }
+
+      .empty-orbit::before,
+      .empty-orbit::after {
+        position: absolute;
+        border: 1px solid rgba(56, 189, 248, 0.2);
+        border-radius: 50%;
+        content: "";
+      }
+
+      .empty-orbit::before {
+        inset: 28px;
+      }
+
+      .empty-orbit::after {
+        inset: 62px;
+        background: radial-gradient(circle, rgba(139, 92, 246, 0.6), transparent 68%);
+      }
+
+      .empty-state h2 {
+        margin: 0;
+        font-size: 24px;
+        text-wrap: balance;
+      }
+
+      .empty-state p {
+        margin: 12px auto 0;
+        color: var(--muted);
+        max-width: 62ch;
+        text-wrap: pretty;
+      }
+
+      .empty-actions {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 22px;
+      }
+
+      .panel-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin: 0 0 14px;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      dialog {
+        width: min(620px, calc(100vw - 28px));
+        max-height: min(820px, calc(100vh - 28px));
+        padding: 0;
+        border: 1px solid var(--border-strong);
+        border-radius: var(--radius-large);
+        color: var(--text);
+        background: var(--surface);
+        box-shadow: var(--shadow);
+        overflow: auto;
+      }
+
+      dialog::backdrop {
+        background: rgba(1, 4, 12, 0.76);
+        backdrop-filter: blur(7px);
+      }
+
+      .dialog-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 18px 20px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .dialog-header h2 {
+        margin: 0;
+        font-size: 19px;
+      }
+
+      .icon-button {
+        width: 36px;
+        height: 36px;
+        padding: 0;
+        border: 1px solid transparent;
+        border-radius: 8px;
+        color: var(--muted);
+        background: transparent;
+      }
+
+      .icon-button:hover {
+        color: var(--text);
+        border-color: var(--border);
+        background: var(--panel);
+      }
+
+      .dialog-body {
+        display: grid;
+        gap: 18px;
+        padding: 20px;
+      }
+
+      .setting-group {
+        display: grid;
+        gap: 8px;
+      }
+
+      .setting-group label,
+      .setting-label {
+        font-size: 13px;
+        font-weight: 650;
+      }
+
+      .setting-help {
+        margin: 0;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .connection-status {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        min-height: 42px;
+        padding: 10px 12px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-small);
+        color: var(--muted);
+        background: var(--panel);
+      }
+
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        flex: 0 0 auto;
+        border-radius: 50%;
+        background: var(--subtle);
+      }
+
+      .connection-status[data-state="testing"] .status-dot {
+        background: var(--blue);
+      }
+
+      .connection-status[data-state="connected"] {
+        color: var(--green);
+      }
+
+      .connection-status[data-state="connected"] .status-dot {
+        background: var(--green);
+      }
+
+      .connection-status[data-state="error"] {
+        color: var(--red);
+      }
+
+      .connection-status[data-state="error"] .status-dot {
+        background: var(--red);
+      }
+
+      details {
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--panel);
+      }
+
+      summary {
+        padding: 13px 14px;
+        color: var(--muted);
+        font-weight: 650;
+        cursor: pointer;
+      }
+
+      .advanced-content {
+        display: grid;
+        gap: 14px;
+        padding: 0 14px 14px;
+      }
+
+      .warning-note {
+        margin: 0;
+        padding: 10px 12px;
+        border: 1px solid rgba(245, 158, 11, 0.35);
+        border-radius: var(--radius-small);
+        color: #ffd68a;
+        background: rgba(245, 158, 11, 0.08);
+        font-size: 12px;
+      }
+
+      .checkbox-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 9px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .dialog-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        padding: 16px 20px 20px;
+      }
+
+      .error-code {
+        display: inline-flex;
+        width: fit-content;
+        padding: 5px 8px;
+        border: 1px solid rgba(251, 113, 133, 0.38);
+        border-radius: 6px;
+        color: #ffd1d9;
+        background: rgba(251, 113, 133, 0.09);
+        font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+        font-size: 12px;
+      }
+
+      .error-message,
+      .error-request-id {
+        margin: 0;
+      }
+
+      .error-request-id {
+        color: var(--muted);
+        font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+        font-size: 11px;
+        overflow-wrap: anywhere;
+      }
+
+      .loading-layer {
+        position: fixed;
+        inset: 0;
+        z-index: 40;
+        display: grid;
+        place-items: center;
+        background: rgba(2, 5, 15, 0.78);
+        backdrop-filter: blur(8px);
+      }
+
+      .loading-card {
+        width: min(440px, calc(100vw - 32px));
+        padding: 24px;
+        border: 1px solid var(--border-strong);
+        border-radius: var(--radius-large);
+        background: var(--surface);
+        box-shadow: var(--shadow);
+        text-align: center;
+      }
+
+      .loading-card h2 {
+        margin: 0;
+        font-size: 19px;
+      }
+
+      .loading-card p {
+        margin: 9px 0 0;
+        color: var(--muted);
+      }
+
+      .progress-track {
+        height: 5px;
+        margin-top: 18px;
+        border-radius: 99px;
+        background: rgba(148, 163, 255, 0.14);
+        overflow: hidden;
+      }
+
+      .progress-track span {
+        display: block;
+        width: 38%;
+        height: 100%;
+        border-radius: inherit;
+        background: var(--purple);
+        animation: loading-progress 1.4s ease-in-out infinite alternate;
+      }
+
+      .toast-region {
+        position: fixed;
+        right: 16px;
+        bottom: 16px;
+        z-index: 50;
+        display: grid;
+        gap: 8px;
+        width: min(360px, calc(100vw - 32px));
+      }
+
+      .toast {
+        padding: 12px 14px;
+        border: 1px solid var(--border-strong);
+        border-radius: var(--radius);
+        background: var(--surface);
+        box-shadow: var(--shadow);
+      }
+
+      @keyframes loading-progress {
+        from {
+          transform: translateX(-10%);
+        }
+        to {
+          transform: translateX(175%);
+        }
+      }
+
+      @media (max-width: 1279px) {
+        .app-header {
+          grid-template-columns: 220px minmax(360px, 1fr);
+        }
+
+        .header-actions {
+          grid-column: 1 / -1;
+        }
+
+        .tab-bar {
+          margin: 0;
+        }
+
+        .workspace {
+          grid-template-columns: minmax(240px, 0.8fr) minmax(500px, 2fr);
+        }
+
+        .right-rail {
+          grid-column: 1 / -1;
+        }
+      }
+
+      @media (max-width: 759px) {
+        .app-shell {
+          padding: 10px;
+        }
+
+        .app-header {
+          grid-template-columns: 1fr;
+          gap: 10px;
+        }
+
+        .prompt-cluster {
+          grid-template-columns: 1fr;
+        }
+
+        .header-actions {
+          grid-column: auto;
+          justify-content: stretch;
+        }
+
+        .header-actions .button {
+          flex: 1;
+        }
+
+        .metric-strip {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .workspace {
+          grid-template-columns: 1fr;
+        }
+
+        .center-panel,
+        .empty-state {
+          min-height: 540px;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="app-header">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">F•S</div>
+          <div>
+            <h1>Future•Scope</h1>
+            <p>Live probability intelligence</p>
+          </div>
+        </div>
+
+        <div class="prompt-cluster">
+          <label class="visually-hidden" for="forecast-prompt">Forecast question</label>
+          <input
+            class="field"
+            id="forecast-prompt"
+            name="forecast-prompt"
+            type="text"
+            autocomplete="off"
+            aria-describedby="prompt-help"
+            placeholder="Ask a bounded question with a time horizon"
+          />
+          <span class="visually-hidden" id="prompt-help">Use between 1 and 400 characters.</span>
+          <label class="visually-hidden" for="research-depth">Research depth</label>
+          <select class="select-field" id="research-depth" name="research-depth">
+            <option value="balanced">Balanced</option>
+            <option value="deep">Deep</option>
+          </select>
+          <button class="button button-primary" id="analyze-button" type="button">
+            Analyze
+          </button>
+        </div>
+
+        <div class="header-actions">
+          <button class="button hidden" id="export-button" type="button">Export</button>
+          <button class="button" id="settings-button" type="button">Settings</button>
+        </div>
+      </header>
+
+      <nav class="tab-bar" aria-label="Forecast views" role="tablist">
+        <button class="tab" id="tab-galaxy" role="tab" aria-selected="true" disabled>
+          Galaxy
+        </button>
+        <button class="tab" id="tab-ranked" role="tab" aria-selected="false" disabled>
+          Ranked
+        </button>
+        <button class="tab" id="tab-tree" role="tab" aria-selected="false" disabled>
+          Tree
+        </button>
+        <button class="tab" id="tab-timeline" role="tab" aria-selected="false" disabled>
+          Timeline
+        </button>
+        <button class="tab" id="tab-matrix" role="tab" aria-selected="false" disabled>
+          Matrix
+        </button>
+        <button class="tab" id="tab-simulation" role="tab" aria-selected="false" disabled>
+          Simulation
+        </button>
+      </nav>
+
+      <section class="metric-strip hidden" id="metric-strip" aria-label="Analysis metrics">
+        <div class="metric">
+          <span class="metric-label">Sources used</span>
+          <strong class="metric-value" id="metric-sources">—</strong>
+        </div>
+        <div class="metric">
+          <span class="metric-label">Confidence</span>
+          <strong class="metric-value" id="metric-confidence">—</strong>
+        </div>
+        <div class="metric">
+          <span class="metric-label">Contradictions</span>
+          <strong class="metric-value" id="metric-contradictions">—</strong>
+        </div>
+        <div class="metric">
+          <span class="metric-label">Last successful run</span>
+          <strong class="metric-value" id="metric-last-run">—</strong>
+        </div>
+      </section>
+
+      <main class="workspace">
+        <aside class="panel side-panel left-rail hidden" id="left-rail">
+          <h2 class="panel-title">Assumptions and events</h2>
+          <div id="factor-controls"></div>
+          <div id="event-controls"></div>
+        </aside>
+
+        <section class="panel center-panel" aria-live="polite" aria-busy="false">
+          <div class="empty-state" id="empty-state">
+            <div class="empty-state-copy">
+              <div class="empty-orbit" aria-hidden="true"></div>
+              <h2>Enter a forecast question and connect the live research backend.</h2>
+              <p>
+                Future•Scope begins empty by design. Configure the secure proxy, then run a
+                sourced analysis to unlock the probability workspace.
+              </p>
+              <div class="empty-actions">
+                <button class="button button-primary" id="empty-settings-button" type="button">
+                  Configure backend
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="hidden" id="view-root"></div>
+        </section>
+
+        <aside class="panel side-panel right-rail hidden" id="right-rail">
+          <h2 class="panel-title">Research and evidence</h2>
+          <div id="evidence-panel"></div>
+        </aside>
+      </main>
+    </div>
+
+    <dialog id="settings-dialog" aria-labelledby="settings-title">
+      <div class="dialog-header">
+        <h2 id="settings-title">Settings</h2>
+        <button
+          class="icon-button"
+          id="close-settings-button"
+          type="button"
+          aria-label="Close settings"
+        >
+          Close
+        </button>
+      </div>
+      <div class="dialog-body">
+        <div class="setting-group">
+          <label for="theme-select">Theme</label>
+          <select class="select-field" id="theme-select" name="theme">
+            <option value="dark">Dark</option>
+            <option value="light">Light</option>
+            <option value="system">System</option>
+          </select>
+          <p class="setting-help">Choose the workspace appearance.</p>
+        </div>
+
+        <div class="setting-group">
+          <label for="density-select">Interface density</label>
+          <select class="select-field" id="density-select" name="density">
+            <option value="comfortable">Comfortable</option>
+            <option value="compact">Compact</option>
+          </select>
+        </div>
+
+        <div class="setting-group">
+          <label for="proxy-url">Backend proxy URL</label>
+          <input
+            class="field"
+            id="proxy-url"
+            name="proxy-url"
+            type="url"
+            inputmode="url"
+            autocomplete="url"
+            placeholder="https://future-scope-proxy.example.workers.dev"
+          />
+          <p class="setting-help">
+            The browser sends analysis requests only to this secure proxy.
+          </p>
+        </div>
+
+        <div class="setting-group">
+          <label for="app-token">App access token</label>
+          <input
+            class="field"
+            id="app-token"
+            name="app-token"
+            type="password"
+            autocomplete="off"
+            placeholder="Session only"
+          />
+          <p class="setting-help">
+            This protects provider quota. It remains in memory and is never saved locally.
+          </p>
+        </div>
+
+        <div
+          class="connection-status"
+          id="connection-status"
+          role="status"
+          aria-label="Connection status"
+          data-state="idle"
+        >
+          <span class="status-dot" aria-hidden="true"></span>
+          <span id="connection-status-text">Not configured</span>
+        </div>
+
+        <details>
+          <summary>Advanced development options</summary>
+          <div class="advanced-content">
+            <p class="warning-note">
+              Development-only provider credentials are unsafe in a browser. They are held
+              only for this tab and work only when the proxy explicitly permits local
+              overrides.
+            </p>
+            <div class="setting-group">
+              <label for="dev-brave-key">Brave key override</label>
+              <input
+                class="field"
+                id="dev-brave-key"
+                type="password"
+                autocomplete="off"
+              />
+            </div>
+            <div class="setting-group">
+              <label for="dev-minimax-key">MiniMax key override</label>
+              <input
+                class="field"
+                id="dev-minimax-key"
+                type="password"
+                autocomplete="off"
+              />
+            </div>
+            <label class="checkbox-row">
+              <input id="telemetry-opt-in" type="checkbox" />
+              <span>
+                Allow anonymous operational telemetry. Off by default; no third-party
+                trackers are loaded.
+              </span>
+            </label>
+          </div>
+        </details>
+      </div>
+      <div class="dialog-footer">
+        <button class="button" id="cancel-settings-button" type="button">Cancel</button>
+        <button class="button button-primary" id="save-test-button" type="button">
+          Save and test
+        </button>
+      </div>
+    </dialog>
+
+    <dialog
+      id="error-dialog"
+      role="alertdialog"
+      aria-labelledby="error-title"
+      aria-describedby="error-message"
+    >
+      <div class="dialog-header">
+        <h2 id="error-title">Request could not be completed</h2>
+        <button class="icon-button" id="close-error-button" type="button">Close</button>
+      </div>
+      <div class="dialog-body">
+        <span class="error-code" id="error-code">E_INTERNAL</span>
+        <p class="error-message" id="error-message"></p>
+        <p class="error-request-id" id="error-request-id"></p>
+      </div>
+      <div class="dialog-footer">
+        <button class="button" id="error-action-button" type="button">Close</button>
+      </div>
+    </dialog>
+
+    <div class="loading-layer hidden" id="loading-layer" role="status" aria-live="polite">
+      <div class="loading-card">
+        <h2>Building a sourced forecast</h2>
+        <p id="loading-message">Clarifying the question and research horizon…</p>
+        <div class="progress-track" aria-hidden="true"><span></span></div>
+      </div>
+    </div>
+
+    <div class="toast-region" id="toast-region" aria-live="polite"></div>
+
+    <script id="app-script">
+      (() => {
+        "use strict";
+
+        const PREFS_KEY = "future-scope-prefs";
+        const DEFAULT_PREFS = Object.freeze({
+          schema_version: 1,
+          theme: "dark",
+          backend_proxy_url: null,
+          ui_density: "comfortable",
+          last_tab: "galaxy",
+        });
+        const TAB_IDS = ["galaxy", "ranked", "tree", "timeline", "matrix", "simulation"];
+
+        const elements = {
+          html: document.documentElement,
+          prompt: document.querySelector("#forecast-prompt"),
+          researchDepth: document.querySelector("#research-depth"),
+          analyzeButton: document.querySelector("#analyze-button"),
+          settingsButton: document.querySelector("#settings-button"),
+          emptySettingsButton: document.querySelector("#empty-settings-button"),
+          exportButton: document.querySelector("#export-button"),
+          settingsDialog: document.querySelector("#settings-dialog"),
+          themeSelect: document.querySelector("#theme-select"),
+          densitySelect: document.querySelector("#density-select"),
+          proxyUrl: document.querySelector("#proxy-url"),
+          appToken: document.querySelector("#app-token"),
+          devBraveKey: document.querySelector("#dev-brave-key"),
+          devMinimaxKey: document.querySelector("#dev-minimax-key"),
+          telemetryOptIn: document.querySelector("#telemetry-opt-in"),
+          connectionStatus: document.querySelector("#connection-status"),
+          connectionStatusText: document.querySelector("#connection-status-text"),
+          saveTestButton: document.querySelector("#save-test-button"),
+          closeSettingsButton: document.querySelector("#close-settings-button"),
+          cancelSettingsButton: document.querySelector("#cancel-settings-button"),
+          errorDialog: document.querySelector("#error-dialog"),
+          errorCode: document.querySelector("#error-code"),
+          errorMessage: document.querySelector("#error-message"),
+          errorRequestId: document.querySelector("#error-request-id"),
+          errorActionButton: document.querySelector("#error-action-button"),
+          closeErrorButton: document.querySelector("#close-error-button"),
+          loadingLayer: document.querySelector("#loading-layer"),
+          loadingMessage: document.querySelector("#loading-message"),
+          emptyState: document.querySelector("#empty-state"),
+          viewRoot: document.querySelector("#view-root"),
+          leftRail: document.querySelector("#left-rail"),
+          rightRail: document.querySelector("#right-rail"),
+          metricStrip: document.querySelector("#metric-strip"),
+          factorControls: document.querySelector("#factor-controls"),
+          eventControls: document.querySelector("#event-controls"),
+          evidencePanel: document.querySelector("#evidence-panel"),
+          toastRegion: document.querySelector("#toast-region"),
+          tabs: TAB_IDS.map((id) => document.querySelector(`#tab-${id}`)),
+        };
+
+        const state = {
+          prefs: loadPreferences(),
+          appToken: "",
+          devBraveKey: "",
+          devMinimaxKey: "",
+          telemetryOptIn: false,
+          connection: "idle",
+          analysis: null,
+          lastSuccessfulAt: null,
+          activeTab: "galaxy",
+          factors: {},
+          userEvents: [],
+          errorAction: null,
+        };
+
+        initialize();
+
+        function initialize() {
+          state.activeTab = TAB_IDS.includes(state.prefs.last_tab)
+            ? state.prefs.last_tab
+            : "galaxy";
+          applyPreferences();
+          bindEvents();
+          updateSettingsFields();
+          updateConnectionStatus(
+            state.prefs.backend_proxy_url ? "idle" : "idle",
+            state.prefs.backend_proxy_url ? "Not tested" : "Not configured",
+          );
+        }
+
+        function bindEvents() {
+          elements.settingsButton.addEventListener("click", openSettings);
+          elements.emptySettingsButton.addEventListener("click", openSettings);
+          elements.closeSettingsButton.addEventListener("click", closeSettings);
+          elements.cancelSettingsButton.addEventListener("click", closeSettings);
+          elements.saveTestButton.addEventListener("click", saveAndTestSettings);
+          elements.analyzeButton.addEventListener("click", startAnalysis);
+          elements.closeErrorButton.addEventListener("click", closeError);
+          elements.errorActionButton.addEventListener("click", runErrorAction);
+          elements.exportButton.addEventListener("click", exportAnalysis);
+          elements.themeSelect.addEventListener("change", () =>
+            applyTheme(elements.themeSelect.value),
+          );
+          elements.tabs.forEach((tab, index) => {
+            tab.addEventListener("click", () => selectTab(TAB_IDS[index]));
+            tab.addEventListener("keydown", (event) => handleTabKeydown(event, index));
+          });
+        }
+
+        function loadPreferences() {
+          try {
+            const parsed = JSON.parse(localStorage.getItem(PREFS_KEY));
+            if (
+              !parsed ||
+              parsed.schema_version !== 1 ||
+              !["dark", "light", "system"].includes(parsed.theme) ||
+              !["comfortable", "compact"].includes(parsed.ui_density) ||
+              !TAB_IDS.includes(parsed.last_tab) ||
+              !(
+                parsed.backend_proxy_url === null ||
+                typeof parsed.backend_proxy_url === "string"
+              )
+            ) {
+              return { ...DEFAULT_PREFS };
+            }
+            return {
+              schema_version: 1,
+              theme: parsed.theme,
+              backend_proxy_url: parsed.backend_proxy_url,
+              ui_density: parsed.ui_density,
+              last_tab: parsed.last_tab,
+            };
+          } catch {
+            return { ...DEFAULT_PREFS };
+          }
+        }
+
+        function persistPreferences() {
+          localStorage.setItem(PREFS_KEY, JSON.stringify(state.prefs));
+        }
+
+        function applyPreferences() {
+          applyTheme(state.prefs.theme);
+          elements.html.dataset.density = state.prefs.ui_density;
+        }
+
+        function applyTheme(theme) {
+          const resolved =
+            theme === "system"
+              ? matchMedia("(prefers-color-scheme: light)").matches
+                ? "light"
+                : "dark"
+              : theme;
+          elements.html.dataset.theme = resolved;
+        }
+
+        function updateSettingsFields() {
+          elements.themeSelect.value = state.prefs.theme;
+          elements.densitySelect.value = state.prefs.ui_density;
+          elements.proxyUrl.value = state.prefs.backend_proxy_url ?? "";
+          elements.appToken.value = state.appToken;
+          elements.devBraveKey.value = state.devBraveKey;
+          elements.devMinimaxKey.value = state.devMinimaxKey;
+          elements.telemetryOptIn.checked = state.telemetryOptIn;
+        }
+
+        function openSettings() {
+          updateSettingsFields();
+          if (!elements.settingsDialog.open) {
+            elements.settingsDialog.showModal();
+          }
+          requestAnimationFrame(() => elements.themeSelect.focus());
+        }
+
+        function closeSettings() {
+          if (elements.settingsDialog.open) elements.settingsDialog.close();
+        }
+
+        async function saveAndTestSettings() {
+          let proxyUrl;
+          try {
+            proxyUrl = normalizeProxyUrl(elements.proxyUrl.value);
+          } catch (error) {
+            updateConnectionStatus("error", error.message);
+            elements.proxyUrl.focus();
+            return;
+          }
+
+          state.prefs = {
+            schema_version: 1,
+            theme: elements.themeSelect.value,
+            backend_proxy_url: proxyUrl,
+            ui_density: elements.densitySelect.value,
+            last_tab: state.activeTab,
+          };
+          state.appToken = elements.appToken.value;
+          state.devBraveKey = elements.devBraveKey.value;
+          state.devMinimaxKey = elements.devMinimaxKey.value;
+          state.telemetryOptIn = elements.telemetryOptIn.checked;
+          persistPreferences();
+          applyPreferences();
+          updateConnectionStatus("testing", "Testing connection…");
+          elements.saveTestButton.disabled = true;
+
+          try {
+            const response = await fetch(`${proxyUrl}/api/health`, {
+              headers: { "X-Request-Id": crypto.randomUUID() },
+              cache: "no-store",
+            });
+            const body = await response.json();
+            if (!response.ok || !body.ok) {
+              throw new Error(body.message || "The proxy health check failed.");
+            }
+            const providersReady = body.brave_configured && body.minimax_configured;
+            updateConnectionStatus(
+              providersReady ? "connected" : "error",
+              providersReady ? `Connected · proxy ${body.version}` : "Connected, but provider keys are missing",
+            );
+          } catch (error) {
+            updateConnectionStatus("error", error.message || "Proxy unavailable");
+          } finally {
+            elements.saveTestButton.disabled = false;
+          }
+        }
+
+        function updateConnectionStatus(connection, text) {
+          state.connection = connection;
+          elements.connectionStatus.dataset.state = connection;
+          elements.connectionStatusText.textContent = text;
+        }
+
+        async function startAnalysis() {
+          const prompt = elements.prompt.value.trim().replace(/\s+/g, " ");
+          if (prompt.length < 1 || prompt.length > 400) {
+            showError({
+              code: "E_INPUT_INVALID",
+              message: "Forecast question must contain between 1 and 400 characters.",
+              action: "edit_input",
+            });
+            return;
+          }
+          if (!state.prefs.backend_proxy_url || !state.appToken) {
+            showError({
+              code: "E_PROXY_OFFLINE",
+              message:
+                "Future•Scope requires a configured secure proxy and app access token.",
+              action: "open_settings",
+            });
+            return;
+          }
+
+          setLoading(true);
+          const requestId = crypto.randomUUID();
+          try {
+            const response = await apiFetch("/api/analyze", {
+              method: "POST",
+              requestId,
+              body: {
+                prompt,
+                research_depth: elements.researchDepth.value,
+                time_horizon_override: null,
+                locale: navigator.language || "en-US",
+              },
+            });
+            state.analysis = response;
+            state.lastSuccessfulAt = new Date();
+            activateAnalysisWorkspace();
+          } catch (error) {
+            showError(error);
+          } finally {
+            setLoading(false);
+          }
+        }
+
+        async function apiFetch(path, options = {}) {
+          const requestId = options.requestId ?? crypto.randomUUID();
+          let response;
+          try {
+            response = await fetch(`${state.prefs.backend_proxy_url}${path}`, {
+              method: options.method ?? "GET",
+              headers: {
+                "Content-Type": "application/json",
+                "X-App-Token": state.appToken,
+                "X-Request-Id": requestId,
+                ...(state.devBraveKey ? { "X-Dev-Brave-Key": state.devBraveKey } : {}),
+                ...(state.devMinimaxKey
+                  ? { "X-Dev-Minimax-Key": state.devMinimaxKey }
+                  : {}),
+              },
+              body: options.body ? JSON.stringify(options.body) : undefined,
+              cache: "no-store",
+            });
+          } catch {
+            throw {
+              code: "E_PROXY_OFFLINE",
+              message: "The configured proxy could not be reached.",
+              action: "open_settings",
+              request_id: requestId,
+            };
+          }
+
+          let body;
+          try {
+            body = await response.json();
+          } catch {
+            body = {
+              code: "E_INTERNAL",
+              message: "The proxy returned an unreadable response.",
+              request_id: response.headers.get("X-Request-Id") || requestId,
+            };
+          }
+          if (!response.ok) throw body;
+          return body;
+        }
+
+        function setLoading(active) {
+          elements.loadingLayer.classList.toggle("hidden", !active);
+          elements.analyzeButton.disabled = active;
+          document.querySelector(".center-panel").setAttribute("aria-busy", String(active));
+        }
+
+        function activateAnalysisWorkspace() {
+          elements.emptyState.classList.add("hidden");
+          elements.viewRoot.classList.remove("hidden");
+          elements.leftRail.classList.remove("hidden");
+          elements.rightRail.classList.remove("hidden");
+          elements.metricStrip.classList.remove("hidden");
+          elements.exportButton.classList.remove("hidden");
+          elements.tabs.forEach((tab) => {
+            tab.disabled = false;
+          });
+          updateMetrics();
+          showToast("Live analysis loaded.");
+        }
+
+        function updateMetrics() {
+          if (!state.analysis) return;
+          document.querySelector("#metric-sources").textContent = String(
+            state.analysis.sources?.length ?? 0,
+          );
+          document.querySelector("#metric-confidence").textContent = `${Math.round(
+            (state.analysis.confidence?.overall ?? 0) * 100,
+          )}%`;
+          document.querySelector("#metric-contradictions").textContent = String(
+            state.analysis.contradictions?.length ?? 0,
+          );
+          document.querySelector("#metric-last-run").textContent = "Just now";
+        }
+
+        function selectTab(tabId) {
+          if (!state.analysis || !TAB_IDS.includes(tabId)) return;
+          state.activeTab = tabId;
+          state.prefs.last_tab = tabId;
+          persistPreferences();
+          elements.tabs.forEach((tab, index) => {
+            const selected = TAB_IDS[index] === tabId;
+            tab.setAttribute("aria-selected", String(selected));
+            tab.tabIndex = selected ? 0 : -1;
+          });
+        }
+
+        function handleTabKeydown(event, index) {
+          if (!state.analysis || !["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) {
+            return;
+          }
+          event.preventDefault();
+          let nextIndex = index;
+          if (event.key === "ArrowLeft") nextIndex = (index - 1 + TAB_IDS.length) % TAB_IDS.length;
+          if (event.key === "ArrowRight") nextIndex = (index + 1) % TAB_IDS.length;
+          if (event.key === "Home") nextIndex = 0;
+          if (event.key === "End") nextIndex = TAB_IDS.length - 1;
+          elements.tabs[nextIndex].focus();
+          elements.tabs[nextIndex].click();
+        }
+
+        function showError(error) {
+          const normalized = {
+            code: error?.code || "E_INTERNAL",
+            message: error?.message || "The request could not be completed.",
+            action: error?.action || null,
+            request_id: error?.request_id || null,
+          };
+          elements.errorCode.textContent = normalized.code;
+          elements.errorMessage.textContent = normalized.message;
+          elements.errorRequestId.textContent = normalized.request_id
+            ? `Request ID: ${normalized.request_id}`
+            : "";
+          state.errorAction =
+            normalized.action === "open_settings"
+              ? openSettings
+              : normalized.action === "edit_input"
+                ? () => elements.prompt.focus()
+                : null;
+          elements.errorActionButton.textContent = state.errorAction ? "Take action" : "Close";
+          if (!elements.errorDialog.open) elements.errorDialog.showModal();
+        }
+
+        function closeError() {
+          if (elements.errorDialog.open) elements.errorDialog.close();
+          state.errorAction = null;
+        }
+
+        function runErrorAction() {
+          const action = state.errorAction;
+          closeError();
+          action?.();
+        }
+
+        function showToast(message) {
+          const toast = document.createElement("div");
+          toast.className = "toast";
+          toast.textContent = message;
+          elements.toastRegion.append(toast);
+          setTimeout(() => toast.remove(), 4_000);
+        }
+
+        function exportAnalysis() {
+          if (!state.analysis) return;
+          const blob = new Blob([JSON.stringify(state.analysis, null, 2)], {
+            type: "application/json",
+          });
+          const link = document.createElement("a");
+          link.href = URL.createObjectURL(blob);
+          link.download = `future-scope-${state.analysis.analysis_id}.json`;
+          link.click();
+          URL.revokeObjectURL(link.href);
+        }
+
+        function normalizeProxyUrl(value) {
+          const trimmed = value.trim();
+          if (!trimmed) throw new Error("Enter a backend proxy URL.");
+          const url = new URL(trimmed);
+          if (!["http:", "https:"].includes(url.protocol)) {
+            throw new Error("Proxy URL must use HTTP or HTTPS.");
+          }
+          if (url.username || url.password) {
+            throw new Error("Proxy URL must not contain credentials.");
+          }
+          url.pathname = url.pathname.replace(/\/+$/, "");
+          url.search = "";
+          url.hash = "";
+          return url.toString().replace(/\/$/, "");
+        }
+      })();
+    </script>
+  </body>
+</html>
