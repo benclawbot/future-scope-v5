@@ -1,0 +1,4 @@
+BRAVE_SEARCH_API_KEY="replace-with-brave-key"
+MINIMAX_API_KEY="replace-with-minimax-key"
+APP_AUTH_TOKEN="generate-a-random-32-byte-token"
+IP_HASH_PEPPER="generate-a-separate-random-32-byte-token"

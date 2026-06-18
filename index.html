@@ -1,0 +1,2961 @@
+<!doctype html>
+<html lang="en" data-theme="dark" data-density="comfortable">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark light" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'sha256-ZyMsWIcQMKTq58nurQ0AqvRtUoNE6rd8NfW689ABT5Y='; style-src 'self' 'unsafe-inline' 'sha256-sNsXKqLF+yF+J0VCqhPgkdHVs7ZnXR4tfdwIaYNViU8='; connect-src 'self' https: http://127.0.0.1:* http://localhost:*; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; worker-src 'none'"
+    />
+    <title>Future•Scope — Live probability intelligence</title>
+    <style id="app-styles">
+      :root {
+        --bg-0: #060814;
+        --bg-1: #0b1020;
+        --surface: rgba(14, 21, 39, 0.96);
+        --panel: rgba(18, 24, 46, 0.88);
+        --panel-strong: rgba(25, 32, 60, 0.96);
+        --border: rgba(148, 163, 255, 0.22);
+        --border-strong: rgba(148, 163, 255, 0.38);
+        --text: #f5f7ff;
+        --muted: #aeb9d6;
+        --subtle: #7f8cad;
+        --purple: #8b5cf6;
+        --blue: #38bdf8;
+        --cyan: #22d3ee;
+        --green: #34d399;
+        --orange: #f59e0b;
+        --red: #fb7185;
+        --shadow: 0 24px 70px rgba(0, 0, 0, 0.34);
+        --radius-small: 8px;
+        --radius: 12px;
+        --radius-large: 18px;
+        --focus: 0 0 0 3px rgba(56, 189, 248, 0.45);
+        --transition: 180ms cubic-bezier(0.22, 1, 0.36, 1);
+      }
+
+      html[data-theme="light"] {
+        --bg-0: #eef3fb;
+        --bg-1: #f8faff;
+        --surface: rgba(255, 255, 255, 0.98);
+        --panel: rgba(250, 252, 255, 0.96);
+        --panel-strong: rgba(241, 245, 253, 0.99);
+        --border: rgba(39, 64, 112, 0.2);
+        --border-strong: rgba(39, 64, 112, 0.35);
+        --text: #10172a;
+        --muted: #445170;
+        --subtle: #66718d;
+        --shadow: 0 20px 60px rgba(45, 65, 105, 0.16);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        min-width: 320px;
+        background: var(--bg-0);
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        color: var(--text);
+        background:
+          radial-gradient(circle at 28% -15%, rgba(139, 92, 246, 0.2), transparent 31rem),
+          radial-gradient(circle at 88% 8%, rgba(34, 211, 238, 0.11), transparent 28rem),
+          linear-gradient(145deg, var(--bg-0), var(--bg-1));
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        line-height: 1.45;
+      }
+
+      button,
+      input,
+      select {
+        font: inherit;
+      }
+
+      button,
+      select {
+        cursor: pointer;
+      }
+
+      button:focus-visible,
+      input:focus-visible,
+      select:focus-visible,
+      summary:focus-visible {
+        outline: none;
+        box-shadow: var(--focus);
+      }
+
+      button:disabled {
+        cursor: not-allowed;
+        opacity: 0.42;
+      }
+
+      .visually-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      .app-shell {
+        width: min(100%, 1920px);
+        margin: 0 auto;
+        padding: 16px;
+      }
+
+      .app-header {
+        display: grid;
+        grid-template-columns: minmax(210px, 0.8fr) minmax(360px, 3fr) auto;
+        align-items: center;
+        gap: 18px;
+        min-height: 66px;
+        margin-bottom: 12px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+      }
+
+      .brand-mark {
+        display: grid;
+        width: 36px;
+        height: 36px;
+        place-items: center;
+        border: 1px solid rgba(139, 92, 246, 0.7);
+        border-radius: 50%;
+        color: #d8ccff;
+        background:
+          radial-gradient(circle, rgba(139, 92, 246, 0.48) 0 2px, transparent 3px),
+          conic-gradient(
+            from 45deg,
+            transparent,
+            rgba(56, 189, 248, 0.45),
+            transparent,
+            rgba(139, 92, 246, 0.55),
+            transparent
+          );
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: -0.04em;
+      }
+
+      .brand h1 {
+        margin: 0;
+        font-size: 17px;
+        font-weight: 760;
+        letter-spacing: 0.12em;
+        line-height: 1.1;
+        text-transform: uppercase;
+      }
+
+      .brand p {
+        margin: 4px 0 0;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .prompt-cluster {
+        display: grid;
+        grid-template-columns: minmax(220px, 1fr) 112px 110px;
+        gap: 8px;
+        min-width: 0;
+      }
+
+      .field,
+      .select-field {
+        width: 100%;
+        min-height: 42px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-small);
+        color: var(--text);
+        background: rgba(7, 12, 25, 0.48);
+        transition:
+          border-color var(--transition),
+          background var(--transition);
+      }
+
+      html[data-theme="light"] .field,
+      html[data-theme="light"] .select-field {
+        background: rgba(255, 255, 255, 0.72);
+      }
+
+      .field {
+        padding: 0 14px;
+      }
+
+      .select-field {
+        padding: 0 10px;
+      }
+
+      .field:hover,
+      .select-field:hover {
+        border-color: var(--border-strong);
+      }
+
+      .field::placeholder {
+        color: var(--muted);
+        opacity: 1;
+      }
+
+      .header-actions {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+      }
+
+      .button {
+        min-height: 40px;
+        padding: 0 14px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-small);
+        color: var(--text);
+        background: rgba(18, 24, 46, 0.72);
+        transition:
+          transform var(--transition),
+          border-color var(--transition),
+          background var(--transition);
+      }
+
+      .button:hover:not(:disabled) {
+        border-color: var(--border-strong);
+        background: var(--panel-strong);
+        transform: translateY(-1px);
+      }
+
+      .button-primary {
+        border-color: rgba(139, 92, 246, 0.8);
+        background: linear-gradient(135deg, #7046e8, #5023d7);
+        color: white;
+        font-weight: 650;
+      }
+
+      .button-danger {
+        border-color: rgba(251, 113, 133, 0.45);
+        color: #ffd2d9;
+      }
+
+      .tab-bar {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        min-height: 46px;
+        margin-left: 25%;
+        margin-right: 25%;
+        padding: 4px;
+        border-bottom: 1px solid var(--border);
+        overflow-x: auto;
+      }
+
+      .tab {
+        position: relative;
+        min-width: 84px;
+        min-height: 36px;
+        border: 0;
+        border-radius: 7px;
+        color: var(--muted);
+        background: transparent;
+      }
+
+      .tab[aria-selected="true"] {
+        color: var(--text);
+        background: rgba(139, 92, 246, 0.2);
+      }
+
+      .tab[aria-selected="true"]::after {
+        position: absolute;
+        right: 18px;
+        bottom: -4px;
+        left: 18px;
+        height: 2px;
+        border-radius: 2px;
+        background: var(--purple);
+        content: "";
+      }
+
+      .metric-strip {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 8px;
+        margin: 12px 0;
+      }
+
+      .metric {
+        min-height: 68px;
+        padding: 12px 14px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--panel);
+      }
+
+      .metric-label {
+        color: var(--muted);
+        font-size: 11px;
+      }
+
+      .metric-value {
+        display: block;
+        margin-top: 4px;
+        font-size: 23px;
+        font-variant-numeric: tabular-nums;
+        line-height: 1;
+      }
+
+      .workspace {
+        display: grid;
+        grid-template-columns: minmax(250px, 3fr) minmax(540px, 6fr) minmax(250px, 3fr);
+        gap: 8px;
+        min-height: calc(100vh - 156px);
+      }
+
+      .workspace.is-empty .center-panel {
+        grid-column: 1 / -1;
+      }
+
+      .panel {
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--panel);
+        box-shadow: 0 14px 40px rgba(0, 0, 0, 0.12);
+      }
+
+      .side-panel {
+        padding: 14px;
+      }
+
+      .center-panel {
+        position: relative;
+        min-height: 680px;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at 50% 38%, rgba(71, 64, 160, 0.12), transparent 42%),
+          var(--surface);
+      }
+
+      .empty-state {
+        display: grid;
+        min-height: 680px;
+        padding: 28px;
+        place-items: center;
+        text-align: center;
+      }
+
+      .empty-state-copy {
+        max-width: 520px;
+      }
+
+      .empty-orbit {
+        position: relative;
+        width: 190px;
+        height: 190px;
+        margin: 0 auto 28px;
+        border: 1px solid rgba(139, 92, 246, 0.38);
+        border-radius: 50%;
+      }
+
+      .empty-orbit::before,
+      .empty-orbit::after {
+        position: absolute;
+        border: 1px solid rgba(56, 189, 248, 0.2);
+        border-radius: 50%;
+        content: "";
+      }
+
+      .empty-orbit::before {
+        inset: 28px;
+      }
+
+      .empty-orbit::after {
+        inset: 62px;
+        background: radial-gradient(circle, rgba(139, 92, 246, 0.6), transparent 68%);
+      }
+
+      .empty-state h2 {
+        margin: 0;
+        font-size: 24px;
+        text-wrap: balance;
+      }
+
+      .empty-state p {
+        margin: 12px auto 0;
+        color: var(--muted);
+        max-width: 62ch;
+        text-wrap: pretty;
+      }
+
+      .empty-actions {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 22px;
+      }
+
+      .panel-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin: 0 0 14px;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      dialog {
+        width: min(620px, calc(100vw - 28px));
+        max-height: min(820px, calc(100vh - 28px));
+        padding: 0;
+        border: 1px solid var(--border-strong);
+        border-radius: var(--radius-large);
+        color: var(--text);
+        background: var(--surface);
+        box-shadow: var(--shadow);
+        overflow: auto;
+      }
+
+      dialog::backdrop {
+        background: rgba(1, 4, 12, 0.76);
+        backdrop-filter: blur(7px);
+      }
+
+      .dialog-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 18px 20px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .dialog-header h2 {
+        margin: 0;
+        font-size: 19px;
+      }
+
+      .icon-button {
+        width: 36px;
+        height: 36px;
+        padding: 0;
+        border: 1px solid transparent;
+        border-radius: 8px;
+        color: var(--muted);
+        background: transparent;
+      }
+
+      .icon-button:hover {
+        color: var(--text);
+        border-color: var(--border);
+        background: var(--panel);
+      }
+
+      .dialog-body {
+        display: grid;
+        gap: 18px;
+        padding: 20px;
+      }
+
+      .setting-group {
+        display: grid;
+        gap: 8px;
+      }
+
+      .setting-group label,
+      .setting-label {
+        font-size: 13px;
+        font-weight: 650;
+      }
+
+      .setting-help {
+        margin: 0;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .connection-status {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        min-height: 42px;
+        padding: 10px 12px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-small);
+        color: var(--muted);
+        background: var(--panel);
+      }
+
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        flex: 0 0 auto;
+        border-radius: 50%;
+        background: var(--subtle);
+      }
+
+      .connection-status[data-state="testing"] .status-dot {
+        background: var(--blue);
+      }
+
+      .connection-status[data-state="connected"] {
+        color: var(--green);
+      }
+
+      .connection-status[data-state="connected"] .status-dot {
+        background: var(--green);
+      }
+
+      .connection-status[data-state="error"] {
+        color: var(--red);
+      }
+
+      .connection-status[data-state="error"] .status-dot {
+        background: var(--red);
+      }
+
+      details {
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--panel);
+      }
+
+      summary {
+        padding: 13px 14px;
+        color: var(--muted);
+        font-weight: 650;
+        cursor: pointer;
+      }
+
+      .advanced-content {
+        display: grid;
+        gap: 14px;
+        padding: 0 14px 14px;
+      }
+
+      .warning-note {
+        margin: 0;
+        padding: 10px 12px;
+        border: 1px solid rgba(245, 158, 11, 0.35);
+        border-radius: var(--radius-small);
+        color: #ffd68a;
+        background: rgba(245, 158, 11, 0.08);
+        font-size: 12px;
+      }
+
+      .checkbox-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 9px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .dialog-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        padding: 16px 20px 20px;
+      }
+
+      .error-code {
+        display: inline-flex;
+        width: fit-content;
+        padding: 5px 8px;
+        border: 1px solid rgba(251, 113, 133, 0.38);
+        border-radius: 6px;
+        color: #ffd1d9;
+        background: rgba(251, 113, 133, 0.09);
+        font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+        font-size: 12px;
+      }
+
+      .error-message,
+      .error-request-id {
+        margin: 0;
+      }
+
+      .error-request-id {
+        color: var(--muted);
+        font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+        font-size: 11px;
+        overflow-wrap: anywhere;
+      }
+
+      .loading-layer {
+        position: fixed;
+        inset: 0;
+        z-index: 40;
+        display: grid;
+        place-items: center;
+        background: rgba(2, 5, 15, 0.78);
+        backdrop-filter: blur(8px);
+      }
+
+      .loading-card {
+        width: min(440px, calc(100vw - 32px));
+        padding: 24px;
+        border: 1px solid var(--border-strong);
+        border-radius: var(--radius-large);
+        background: var(--surface);
+        box-shadow: var(--shadow);
+        text-align: center;
+      }
+
+      .loading-card h2 {
+        margin: 0;
+        font-size: 19px;
+      }
+
+      .loading-card p {
+        margin: 9px 0 0;
+        color: var(--muted);
+      }
+
+      .progress-track {
+        height: 5px;
+        margin-top: 18px;
+        border-radius: 99px;
+        background: rgba(148, 163, 255, 0.14);
+        overflow: hidden;
+      }
+
+      .progress-track span {
+        display: block;
+        width: 38%;
+        height: 100%;
+        border-radius: inherit;
+        background: var(--purple);
+        animation: loading-progress 1.4s ease-in-out infinite alternate;
+      }
+
+      .toast-region {
+        position: fixed;
+        right: 16px;
+        bottom: 16px;
+        z-index: 50;
+        display: grid;
+        gap: 8px;
+        width: min(360px, calc(100vw - 32px));
+      }
+
+      .toast {
+        padding: 12px 14px;
+        border: 1px solid var(--border-strong);
+        border-radius: var(--radius);
+        background: var(--surface);
+        box-shadow: var(--shadow);
+      }
+
+      .view {
+        min-height: 680px;
+        padding: 16px;
+      }
+
+      .view-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 14px;
+      }
+
+      .view-header h2 {
+        margin: 0;
+        font-size: 17px;
+        text-wrap: balance;
+      }
+
+      .view-header p {
+        margin: 5px 0 0;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .total-probability {
+        flex: 0 0 auto;
+        padding: 8px 10px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-small);
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .total-probability strong {
+        margin-left: 5px;
+        color: var(--text);
+        font-size: 18px;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .control-section + .control-section {
+        margin-top: 20px;
+        padding-top: 18px;
+        border-top: 1px solid var(--border);
+      }
+
+      .control-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin: 0 0 12px;
+        font-size: 12px;
+        font-weight: 720;
+        letter-spacing: 0.035em;
+        text-transform: uppercase;
+      }
+
+      .factor-control {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 7px 10px;
+        margin-bottom: 15px;
+      }
+
+      .factor-control label {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .factor-control output {
+        color: var(--text);
+        font-size: 12px;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .factor-control input[type="range"] {
+        grid-column: 1 / -1;
+        width: 100%;
+        height: 5px;
+        margin: 3px 0;
+        accent-color: var(--purple);
+      }
+
+      .event-entry {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 8px;
+      }
+
+      .event-card {
+        display: grid;
+        gap: 8px;
+        margin-top: 8px;
+        padding: 10px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-small);
+        background: rgba(8, 14, 28, 0.34);
+      }
+
+      .event-card-head {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        align-items: start;
+        gap: 8px;
+      }
+
+      .event-card-title {
+        min-width: 0;
+        font-size: 12px;
+        overflow-wrap: anywhere;
+      }
+
+      .event-state {
+        color: var(--muted);
+        font-size: 10px;
+      }
+
+      .event-delete {
+        min-width: 28px;
+        min-height: 28px;
+        padding: 0;
+      }
+
+      .evidence-tabs {
+        display: flex;
+        gap: 4px;
+        margin-bottom: 10px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .evidence-tab {
+        flex: 1;
+        min-height: 32px;
+        border: 0;
+        border-radius: 6px;
+        color: var(--muted);
+        background: transparent;
+        font-size: 11px;
+      }
+
+      .evidence-tab[aria-selected="true"] {
+        color: var(--text);
+        background: rgba(139, 92, 246, 0.22);
+      }
+
+      .evidence-list,
+      .source-list,
+      .contradiction-list {
+        display: grid;
+        gap: 8px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .evidence-item,
+      .source-item,
+      .contradiction-item {
+        padding: 10px 0;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .evidence-item p,
+      .source-item p,
+      .contradiction-item p {
+        margin: 0;
+        font-size: 12px;
+      }
+
+      .evidence-meta,
+      .source-meta {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        margin-top: 5px;
+        color: var(--subtle);
+        font-size: 10px;
+      }
+
+      .source-item a {
+        color: #a8c7ff;
+        font-size: 12px;
+        text-decoration: none;
+      }
+
+      .source-item a:hover {
+        text-decoration: underline;
+      }
+
+      .evidence-section-title {
+        margin: 18px 0 8px;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .galaxy-stage {
+        position: relative;
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        grid-template-rows: repeat(10, minmax(48px, 1fr));
+        min-height: 570px;
+        border: 1px solid rgba(148, 163, 255, 0.12);
+        border-radius: var(--radius);
+        background:
+          repeating-radial-gradient(
+            circle at 50% 50%,
+            transparent 0 72px,
+            rgba(104, 120, 201, 0.1) 73px,
+            transparent 74px 130px
+          ),
+          radial-gradient(circle at 50% 48%, rgba(49, 43, 109, 0.35), transparent 48%);
+        overflow: hidden;
+      }
+
+      .galaxy-stage::before {
+        position: absolute;
+        inset: 0;
+        background-image:
+          radial-gradient(circle at 22% 32%, rgba(56, 189, 248, 0.8) 0 1px, transparent 1.5px),
+          radial-gradient(circle at 76% 25%, rgba(139, 92, 246, 0.75) 0 1px, transparent 1.5px),
+          radial-gradient(circle at 66% 78%, rgba(34, 211, 238, 0.65) 0 1px, transparent 1.5px);
+        background-size: 170px 130px, 220px 180px, 190px 150px;
+        opacity: 0.55;
+        content: "";
+      }
+
+      .outcome-orb {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        align-self: center;
+        justify-self: center;
+        width: var(--orb-size);
+        max-width: 100%;
+        aspect-ratio: 1;
+        place-items: center;
+        padding: 14px;
+        border: 1px solid color-mix(in srgb, var(--orb-color) 78%, white 8%);
+        border-radius: 50%;
+        color: var(--text);
+        background:
+          radial-gradient(circle at 38% 30%, color-mix(in srgb, var(--orb-color) 34%, transparent), transparent 68%),
+          rgba(8, 14, 31, 0.86);
+        box-shadow:
+          0 0 28px color-mix(in srgb, var(--orb-color) 34%, transparent),
+          inset 0 0 30px rgba(255, 255, 255, 0.025);
+        text-align: center;
+      }
+
+      .outcome-orb strong {
+        display: block;
+        font-size: clamp(13px, 1.3vw, 20px);
+        line-height: 1.15;
+        text-wrap: balance;
+      }
+
+      .outcome-orb [data-probability] {
+        display: block;
+        margin-top: 5px;
+        color: var(--orb-color);
+        font-size: clamp(20px, 2.2vw, 34px);
+        font-weight: 760;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .outcome-orb small {
+        display: block;
+        margin-top: 2px;
+        color: var(--muted);
+        font-size: 10px;
+      }
+
+      .ranked-list {
+        display: grid;
+        gap: 1px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+      }
+
+      .ranked-row {
+        display: grid;
+        grid-template-columns: 42px minmax(180px, 1.5fr) minmax(140px, 0.8fr) 90px;
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+        min-height: 92px;
+        padding: 12px;
+        border: 0;
+        border-bottom: 1px solid var(--border);
+        color: var(--text);
+        background: rgba(7, 12, 26, 0.34);
+        text-align: left;
+      }
+
+      .ranked-row:last-child {
+        border-bottom: 0;
+      }
+
+      .ranked-row:hover {
+        background: rgba(25, 32, 60, 0.62);
+      }
+
+      .rank-number {
+        color: var(--outcome-color);
+        font-size: 26px;
+        font-weight: 760;
+        text-align: center;
+      }
+
+      .ranked-copy strong {
+        display: block;
+        margin-bottom: 4px;
+      }
+
+      .ranked-copy span {
+        color: var(--muted);
+        font-size: 11px;
+      }
+
+      .probability-cell strong {
+        color: var(--outcome-color);
+        font-size: 24px;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .probability-track {
+        height: 6px;
+        margin-top: 7px;
+        border-radius: 99px;
+        background: rgba(148, 163, 255, 0.12);
+        overflow: hidden;
+      }
+
+      .probability-track span {
+        display: block;
+        width: var(--probability);
+        height: 100%;
+        border-radius: inherit;
+        background: var(--outcome-color);
+        transition: width var(--transition);
+      }
+
+      .confidence-cell {
+        color: var(--muted);
+        font-size: 11px;
+        text-align: center;
+      }
+
+      .confidence-cell strong {
+        display: block;
+        color: var(--text);
+        font-size: 16px;
+      }
+
+      .explainability {
+        margin-top: 12px;
+        padding: 14px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--panel);
+      }
+
+      .explainability h3 {
+        margin: 0 0 8px;
+        font-size: 14px;
+      }
+
+      .driver-list {
+        display: grid;
+        gap: 7px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .driver-list li {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        color: var(--muted);
+        font-size: 11px;
+      }
+
+      .coverage-note {
+        margin: 14px 0 0;
+        color: var(--muted);
+        font-size: 11px;
+      }
+
+      .tree-map {
+        display: grid;
+        grid-template-columns: minmax(130px, 0.72fr) minmax(170px, 0.9fr) minmax(240px, 1.4fr);
+        align-items: center;
+        gap: 34px;
+        min-height: 570px;
+        padding: 24px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background:
+          linear-gradient(rgba(56, 189, 248, 0.06), transparent 38%),
+          rgba(4, 9, 21, 0.35);
+      }
+
+      .tree-root,
+      .tree-branch,
+      .tree-outcome {
+        position: relative;
+        padding: 14px;
+        border: 1px solid var(--node-color, var(--blue));
+        border-radius: var(--radius-small);
+        background: rgba(9, 16, 31, 0.9);
+      }
+
+      .tree-root {
+        align-self: center;
+        text-align: center;
+      }
+
+      .tree-root span {
+        display: block;
+        margin-top: 7px;
+        color: var(--muted);
+        font-size: 11px;
+      }
+
+      .tree-branch-column,
+      .tree-outcome-column {
+        display: grid;
+        gap: 10px;
+      }
+
+      .tree-branch::before,
+      .tree-outcome::before {
+        position: absolute;
+        top: 50%;
+        right: 100%;
+        width: 34px;
+        height: 1px;
+        background: var(--node-color, var(--blue));
+        content: "";
+      }
+
+      .tree-branch strong,
+      .tree-outcome strong {
+        display: block;
+        margin-bottom: 4px;
+      }
+
+      .tree-branch span,
+      .tree-outcome span {
+        color: var(--muted);
+        font-size: 11px;
+      }
+
+      .tree-outcome output {
+        float: right;
+        color: var(--node-color);
+        font-size: 18px;
+        font-weight: 750;
+      }
+
+      .timeline-stage {
+        display: grid;
+        gap: 18px;
+      }
+
+      .timeline-axis {
+        position: relative;
+        min-height: 190px;
+        padding: 38px 18px 18px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: rgba(5, 11, 24, 0.32);
+      }
+
+      .timeline-axis::before {
+        position: absolute;
+        top: 104px;
+        right: 24px;
+        left: 24px;
+        height: 2px;
+        background: linear-gradient(90deg, var(--blue), var(--purple), var(--cyan));
+        content: "";
+      }
+
+      .timeline-labels {
+        display: flex;
+        justify-content: space-between;
+        color: var(--muted);
+        font-size: 11px;
+      }
+
+      .timeline-events {
+        position: absolute;
+        inset: 58px 24px auto;
+        height: 100px;
+      }
+
+      .timeline-event {
+        position: absolute;
+        top: 18px;
+        width: 124px;
+        min-height: 58px;
+        padding: 8px;
+        border: 1px solid var(--event-color, var(--purple));
+        border-radius: 7px;
+        background: rgba(8, 14, 30, 0.96);
+        font-size: 10px;
+        text-align: center;
+        transform: translateX(-50%);
+      }
+
+      .timeline-event::after {
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        width: 1px;
+        height: 18px;
+        background: var(--event-color, var(--purple));
+        content: "";
+      }
+
+      .timeline-chart {
+        min-height: 320px;
+        padding: 14px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: rgba(5, 11, 24, 0.32);
+      }
+
+      .timeline-chart svg {
+        width: 100%;
+        height: 260px;
+        overflow: visible;
+      }
+
+      .timeline-chart text {
+        fill: var(--muted);
+        font-size: 9px;
+      }
+
+      .timeline-decay {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 8px;
+        margin-top: 12px;
+        padding: 10px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-small);
+        color: var(--muted);
+        font-size: 11px;
+      }
+
+      .timeline-decay input {
+        grid-column: 1 / -1;
+        width: 100%;
+        accent-color: var(--purple);
+      }
+
+      .matrix-stage {
+        position: relative;
+        min-height: 570px;
+        margin: 18px 10px 10px 48px;
+        border-left: 1px solid var(--muted);
+        border-bottom: 1px solid var(--muted);
+        background:
+          linear-gradient(90deg, transparent 49.9%, var(--border) 50%, transparent 50.1%),
+          linear-gradient(transparent 49.9%, var(--border) 50%, transparent 50.1%),
+          radial-gradient(circle at 75% 25%, rgba(52, 211, 153, 0.08), transparent 38%),
+          radial-gradient(circle at 25% 75%, rgba(245, 158, 11, 0.07), transparent 38%);
+      }
+
+      .matrix-axis-label {
+        position: absolute;
+        color: var(--muted);
+        font-size: 11px;
+        text-transform: uppercase;
+      }
+
+      .matrix-axis-label-x {
+        right: 0;
+        bottom: -30px;
+      }
+
+      .matrix-axis-label-y {
+        top: 0;
+        left: -42px;
+        writing-mode: vertical-rl;
+        transform: rotate(180deg);
+      }
+
+      .matrix-outcome {
+        position: absolute;
+        display: grid;
+        width: var(--matrix-size);
+        aspect-ratio: 1;
+        place-items: center;
+        border: 1px solid var(--outcome-color);
+        border-radius: 50%;
+        background: color-mix(in srgb, var(--outcome-color) 12%, rgba(7, 13, 28, 0.94));
+        box-shadow: 0 0 24px color-mix(in srgb, var(--outcome-color) 28%, transparent);
+        transform: translate(-50%, 50%);
+        text-align: center;
+      }
+
+      .matrix-outcome strong {
+        font-size: clamp(14px, 1.8vw, 26px);
+      }
+
+      .matrix-outcome span {
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        width: 150px;
+        margin-top: 6px;
+        color: var(--text);
+        font-size: 10px;
+        transform: translateX(-50%);
+      }
+
+      .matrix-outcome:nth-of-type(odd) span {
+        transform: translateX(-72%);
+      }
+
+      .matrix-outcome:nth-of-type(even) span {
+        transform: translateX(-28%);
+      }
+
+      .simulation-summary {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 1px;
+        margin-bottom: 12px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+      }
+
+      .simulation-summary div {
+        padding: 12px;
+        background: rgba(7, 12, 26, 0.36);
+        text-align: center;
+      }
+
+      .simulation-summary span {
+        display: block;
+        color: var(--muted);
+        font-size: 10px;
+        text-transform: uppercase;
+      }
+
+      .simulation-summary strong {
+        display: block;
+        margin-top: 5px;
+        font-size: 22px;
+      }
+
+      .simulation-table {
+        display: grid;
+        gap: 1px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+      }
+
+      .simulation-row {
+        display: grid;
+        grid-template-columns: 38px minmax(160px, 1.4fr) minmax(130px, 0.8fr) minmax(150px, 1fr);
+        align-items: center;
+        gap: 12px;
+        min-height: 78px;
+        padding: 10px 12px;
+        background: rgba(7, 12, 26, 0.34);
+      }
+
+      .simulation-row + .simulation-row {
+        border-top: 1px solid var(--border);
+      }
+
+      .simulation-row [data-probability] {
+        color: var(--outcome-color);
+        font-size: 21px;
+        font-weight: 750;
+      }
+
+      .simulation-drivers {
+        color: var(--muted);
+        font-size: 10px;
+      }
+
+      .delta-positive {
+        color: var(--green);
+      }
+
+      .delta-negative {
+        color: var(--red);
+      }
+
+      html[data-density="compact"] .side-panel,
+      html[data-density="compact"] .view {
+        padding: 10px;
+      }
+
+      html[data-density="compact"] .factor-control {
+        margin-bottom: 10px;
+      }
+
+      @keyframes loading-progress {
+        from {
+          transform: translateX(-10%);
+        }
+        to {
+          transform: translateX(175%);
+        }
+      }
+
+      @media (max-width: 1279px) {
+        .app-header {
+          grid-template-columns: 220px minmax(360px, 1fr);
+        }
+
+        .header-actions {
+          grid-column: 1 / -1;
+        }
+
+        .tab-bar {
+          margin: 0;
+        }
+
+        .workspace {
+          grid-template-columns: minmax(240px, 0.8fr) minmax(500px, 2fr);
+        }
+
+        .right-rail {
+          grid-column: 1 / -1;
+        }
+      }
+
+      @media (max-width: 759px) {
+        .app-shell {
+          padding: 10px;
+        }
+
+        .app-header {
+          grid-template-columns: 1fr;
+          gap: 10px;
+        }
+
+        .prompt-cluster {
+          grid-template-columns: 1fr;
+        }
+
+        .header-actions {
+          grid-column: auto;
+          justify-content: stretch;
+        }
+
+        .header-actions .button {
+          flex: 1;
+        }
+
+        .metric-strip {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .workspace {
+          grid-template-columns: 1fr;
+        }
+
+        .center-panel,
+        .empty-state {
+          min-height: 540px;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="app-header">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">F•S</div>
+          <div>
+            <h1>Future•Scope</h1>
+            <p>Live probability intelligence</p>
+          </div>
+        </div>
+
+        <div class="prompt-cluster">
+          <label class="visually-hidden" for="forecast-prompt">Forecast question</label>
+          <input
+            class="field"
+            id="forecast-prompt"
+            name="forecast-prompt"
+            type="text"
+            autocomplete="off"
+            aria-describedby="prompt-help"
+            placeholder="Ask a bounded question with a time horizon"
+          />
+          <span class="visually-hidden" id="prompt-help">Use between 1 and 400 characters.</span>
+          <label class="visually-hidden" for="research-depth">Research depth</label>
+          <select class="select-field" id="research-depth" name="research-depth">
+            <option value="balanced">Balanced</option>
+            <option value="deep">Deep</option>
+          </select>
+          <button class="button button-primary" id="analyze-button" type="button">
+            Analyze
+          </button>
+        </div>
+
+        <div class="header-actions">
+          <button class="button hidden" id="export-button" type="button">Export</button>
+          <button class="button" id="settings-button" type="button">Settings</button>
+        </div>
+      </header>
+
+      <nav class="tab-bar" aria-label="Forecast views" role="tablist">
+        <button class="tab" id="tab-galaxy" role="tab" aria-selected="true" disabled>
+          Galaxy
+        </button>
+        <button class="tab" id="tab-ranked" role="tab" aria-selected="false" disabled>
+          Ranked
+        </button>
+        <button class="tab" id="tab-tree" role="tab" aria-selected="false" disabled>
+          Tree
+        </button>
+        <button class="tab" id="tab-timeline" role="tab" aria-selected="false" disabled>
+          Timeline
+        </button>
+        <button class="tab" id="tab-matrix" role="tab" aria-selected="false" disabled>
+          Matrix
+        </button>
+        <button class="tab" id="tab-simulation" role="tab" aria-selected="false" disabled>
+          Simulation
+        </button>
+      </nav>
+
+      <section class="metric-strip hidden" id="metric-strip" aria-label="Analysis metrics">
+        <div class="metric">
+          <span class="metric-label">Sources used</span>
+          <strong class="metric-value" id="metric-sources">—</strong>
+        </div>
+        <div class="metric">
+          <span class="metric-label">Confidence</span>
+          <strong class="metric-value" id="metric-confidence">—</strong>
+        </div>
+        <div class="metric">
+          <span class="metric-label">Contradictions</span>
+          <strong class="metric-value" id="metric-contradictions">—</strong>
+        </div>
+        <div class="metric">
+          <span class="metric-label">Last successful run</span>
+          <strong class="metric-value" id="metric-last-run">—</strong>
+        </div>
+      </section>
+
+      <main class="workspace is-empty">
+        <aside class="panel side-panel left-rail hidden" id="left-rail">
+          <h2 class="panel-title">Assumptions and events</h2>
+          <div id="factor-controls"></div>
+          <div id="event-controls"></div>
+        </aside>
+
+        <section class="panel center-panel" aria-live="polite" aria-busy="false">
+          <div class="empty-state" id="empty-state">
+            <div class="empty-state-copy">
+              <div class="empty-orbit" aria-hidden="true"></div>
+              <h2>Enter a forecast question and connect the live research backend.</h2>
+              <p>
+                Future•Scope begins empty by design. Configure the secure proxy, then run a
+                sourced analysis to unlock the probability workspace.
+              </p>
+              <div class="empty-actions">
+                <button class="button button-primary" id="empty-settings-button" type="button">
+                  Configure backend
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="hidden" id="view-root"></div>
+        </section>
+
+        <aside class="panel side-panel right-rail hidden" id="right-rail">
+          <h2 class="panel-title">Research and evidence</h2>
+          <div id="evidence-panel"></div>
+        </aside>
+      </main>
+    </div>
+
+    <dialog id="settings-dialog" aria-labelledby="settings-title">
+      <div class="dialog-header">
+        <h2 id="settings-title">Settings</h2>
+        <button
+          class="icon-button"
+          id="close-settings-button"
+          type="button"
+          aria-label="Close settings"
+        >
+          Close
+        </button>
+      </div>
+      <div class="dialog-body">
+        <div class="setting-group">
+          <label for="theme-select">Theme</label>
+          <select class="select-field" id="theme-select" name="theme">
+            <option value="dark">Dark</option>
+            <option value="light">Light</option>
+            <option value="system">System</option>
+          </select>
+          <p class="setting-help">Choose the workspace appearance.</p>
+        </div>
+
+        <div class="setting-group">
+          <label for="density-select">Interface density</label>
+          <select class="select-field" id="density-select" name="density">
+            <option value="comfortable">Comfortable</option>
+            <option value="compact">Compact</option>
+          </select>
+        </div>
+
+        <div class="setting-group">
+          <label for="proxy-url">Backend proxy URL</label>
+          <input
+            class="field"
+            id="proxy-url"
+            name="proxy-url"
+            type="url"
+            inputmode="url"
+            autocomplete="url"
+            placeholder="https://future-scope-proxy.example.workers.dev"
+          />
+          <p class="setting-help">
+            The browser sends analysis requests only to this secure proxy.
+          </p>
+        </div>
+
+        <div class="setting-group">
+          <label for="app-token">App access token</label>
+          <input
+            class="field"
+            id="app-token"
+            name="app-token"
+            type="password"
+            autocomplete="off"
+            placeholder="Session only"
+          />
+          <p class="setting-help">
+            This protects provider quota. It remains in memory and is never saved locally.
+          </p>
+        </div>
+
+        <div
+          class="connection-status"
+          id="connection-status"
+          role="status"
+          aria-label="Connection status"
+          data-state="idle"
+        >
+          <span class="status-dot" aria-hidden="true"></span>
+          <span id="connection-status-text">Not configured</span>
+        </div>
+
+        <details>
+          <summary>Advanced development options</summary>
+          <div class="advanced-content">
+            <p class="warning-note">
+              Development-only provider credentials are unsafe in a browser. They are held
+              only for this tab and work only when the proxy explicitly permits local
+              overrides.
+            </p>
+            <div class="setting-group">
+              <label for="dev-brave-key">Brave key override</label>
+              <input
+                class="field"
+                id="dev-brave-key"
+                type="password"
+                autocomplete="off"
+              />
+            </div>
+            <div class="setting-group">
+              <label for="dev-minimax-key">MiniMax key override</label>
+              <input
+                class="field"
+                id="dev-minimax-key"
+                type="password"
+                autocomplete="off"
+              />
+            </div>
+            <label class="checkbox-row">
+              <input id="telemetry-opt-in" type="checkbox" />
+              <span>
+                Allow anonymous operational telemetry. Off by default; no third-party
+                trackers are loaded.
+              </span>
+            </label>
+          </div>
+        </details>
+      </div>
+      <div class="dialog-footer">
+        <button class="button" id="cancel-settings-button" type="button">Cancel</button>
+        <button class="button button-primary" id="save-test-button" type="button">
+          Save and test
+        </button>
+      </div>
+    </dialog>
+
+    <dialog
+      id="error-dialog"
+      role="alertdialog"
+      aria-labelledby="error-title"
+      aria-describedby="error-message"
+    >
+      <div class="dialog-header">
+        <h2 id="error-title">Request could not be completed</h2>
+        <button class="icon-button" id="close-error-button" type="button">Close</button>
+      </div>
+      <div class="dialog-body">
+        <span class="error-code" id="error-code">E_INTERNAL</span>
+        <p class="error-message" id="error-message"></p>
+        <p class="error-request-id" id="error-request-id"></p>
+      </div>
+      <div class="dialog-footer">
+        <button class="button" id="error-action-button" type="button">Close</button>
+      </div>
+    </dialog>
+
+    <div class="loading-layer hidden" id="loading-layer" role="status" aria-live="polite">
+      <div class="loading-card">
+        <h2>Building a sourced forecast</h2>
+        <p id="loading-message">Clarifying the question and research horizon…</p>
+        <div class="progress-track" aria-hidden="true"><span></span></div>
+      </div>
+    </div>
+
+    <div class="toast-region" id="toast-region" aria-live="polite"></div>
+
+    <script id="app-script">
+      (() => {
+        "use strict";
+
+        const PREFS_KEY = "future-scope-prefs";
+        const DEFAULT_PREFS = Object.freeze({
+          schema_version: 1,
+          theme: "dark",
+          backend_proxy_url: null,
+          ui_density: "comfortable",
+          last_tab: "galaxy",
+        });
+        const TAB_IDS = ["galaxy", "ranked", "tree", "timeline", "matrix", "simulation"];
+
+        const elements = {
+          html: document.documentElement,
+          prompt: document.querySelector("#forecast-prompt"),
+          researchDepth: document.querySelector("#research-depth"),
+          analyzeButton: document.querySelector("#analyze-button"),
+          settingsButton: document.querySelector("#settings-button"),
+          emptySettingsButton: document.querySelector("#empty-settings-button"),
+          exportButton: document.querySelector("#export-button"),
+          settingsDialog: document.querySelector("#settings-dialog"),
+          themeSelect: document.querySelector("#theme-select"),
+          densitySelect: document.querySelector("#density-select"),
+          proxyUrl: document.querySelector("#proxy-url"),
+          appToken: document.querySelector("#app-token"),
+          devBraveKey: document.querySelector("#dev-brave-key"),
+          devMinimaxKey: document.querySelector("#dev-minimax-key"),
+          telemetryOptIn: document.querySelector("#telemetry-opt-in"),
+          connectionStatus: document.querySelector("#connection-status"),
+          connectionStatusText: document.querySelector("#connection-status-text"),
+          saveTestButton: document.querySelector("#save-test-button"),
+          closeSettingsButton: document.querySelector("#close-settings-button"),
+          cancelSettingsButton: document.querySelector("#cancel-settings-button"),
+          errorDialog: document.querySelector("#error-dialog"),
+          errorCode: document.querySelector("#error-code"),
+          errorMessage: document.querySelector("#error-message"),
+          errorRequestId: document.querySelector("#error-request-id"),
+          errorActionButton: document.querySelector("#error-action-button"),
+          closeErrorButton: document.querySelector("#close-error-button"),
+          loadingLayer: document.querySelector("#loading-layer"),
+          loadingMessage: document.querySelector("#loading-message"),
+          emptyState: document.querySelector("#empty-state"),
+          viewRoot: document.querySelector("#view-root"),
+          leftRail: document.querySelector("#left-rail"),
+          rightRail: document.querySelector("#right-rail"),
+          metricStrip: document.querySelector("#metric-strip"),
+          factorControls: document.querySelector("#factor-controls"),
+          eventControls: document.querySelector("#event-controls"),
+          evidencePanel: document.querySelector("#evidence-panel"),
+          toastRegion: document.querySelector("#toast-region"),
+          tabs: TAB_IDS.map((id) => document.querySelector(`#tab-${id}`)),
+        };
+
+        const state = {
+          prefs: loadPreferences(),
+          appToken: "",
+          devBraveKey: "",
+          devMinimaxKey: "",
+          telemetryOptIn: false,
+          connection: "idle",
+          analysis: null,
+          lastSuccessfulAt: null,
+          activeTab: "galaxy",
+          factors: {},
+          userEvents: [],
+          evidenceFilter: "supporting",
+          selectedOutcomeId: null,
+          baselineProbabilities: {},
+          errorAction: null,
+        };
+
+        initialize();
+
+        function initialize() {
+          state.activeTab = TAB_IDS.includes(state.prefs.last_tab)
+            ? state.prefs.last_tab
+            : "galaxy";
+          applyPreferences();
+          bindEvents();
+          updateSettingsFields();
+          updateConnectionStatus(
+            state.prefs.backend_proxy_url ? "idle" : "idle",
+            state.prefs.backend_proxy_url ? "Not tested" : "Not configured",
+          );
+        }
+
+        function bindEvents() {
+          elements.settingsButton.addEventListener("click", openSettings);
+          elements.emptySettingsButton.addEventListener("click", openSettings);
+          elements.closeSettingsButton.addEventListener("click", closeSettings);
+          elements.cancelSettingsButton.addEventListener("click", closeSettings);
+          elements.saveTestButton.addEventListener("click", saveAndTestSettings);
+          elements.analyzeButton.addEventListener("click", startAnalysis);
+          elements.closeErrorButton.addEventListener("click", closeError);
+          elements.errorActionButton.addEventListener("click", runErrorAction);
+          elements.exportButton.addEventListener("click", exportAnalysis);
+          elements.themeSelect.addEventListener("change", () =>
+            applyTheme(elements.themeSelect.value),
+          );
+          elements.tabs.forEach((tab, index) => {
+            tab.addEventListener("click", () => selectTab(TAB_IDS[index]));
+            tab.addEventListener("keydown", (event) => handleTabKeydown(event, index));
+          });
+        }
+
+        function loadPreferences() {
+          try {
+            const parsed = JSON.parse(localStorage.getItem(PREFS_KEY));
+            if (
+              !parsed ||
+              parsed.schema_version !== 1 ||
+              !["dark", "light", "system"].includes(parsed.theme) ||
+              !["comfortable", "compact"].includes(parsed.ui_density) ||
+              !TAB_IDS.includes(parsed.last_tab) ||
+              !(
+                parsed.backend_proxy_url === null ||
+                typeof parsed.backend_proxy_url === "string"
+              )
+            ) {
+              return { ...DEFAULT_PREFS };
+            }
+            return {
+              schema_version: 1,
+              theme: parsed.theme,
+              backend_proxy_url: parsed.backend_proxy_url,
+              ui_density: parsed.ui_density,
+              last_tab: parsed.last_tab,
+            };
+          } catch {
+            return { ...DEFAULT_PREFS };
+          }
+        }
+
+        function persistPreferences() {
+          localStorage.setItem(PREFS_KEY, JSON.stringify(state.prefs));
+        }
+
+        function applyPreferences() {
+          applyTheme(state.prefs.theme);
+          elements.html.dataset.density = state.prefs.ui_density;
+        }
+
+        function applyTheme(theme) {
+          const resolved =
+            theme === "system"
+              ? matchMedia("(prefers-color-scheme: light)").matches
+                ? "light"
+                : "dark"
+              : theme;
+          elements.html.dataset.theme = resolved;
+        }
+
+        function updateSettingsFields() {
+          elements.themeSelect.value = state.prefs.theme;
+          elements.densitySelect.value = state.prefs.ui_density;
+          elements.proxyUrl.value = state.prefs.backend_proxy_url ?? "";
+          elements.appToken.value = state.appToken;
+          elements.devBraveKey.value = state.devBraveKey;
+          elements.devMinimaxKey.value = state.devMinimaxKey;
+          elements.telemetryOptIn.checked = state.telemetryOptIn;
+        }
+
+        function openSettings() {
+          updateSettingsFields();
+          if (!elements.settingsDialog.open) {
+            elements.settingsDialog.showModal();
+          }
+          requestAnimationFrame(() => elements.themeSelect.focus());
+        }
+
+        function closeSettings() {
+          if (elements.settingsDialog.open) elements.settingsDialog.close();
+        }
+
+        async function saveAndTestSettings() {
+          let proxyUrl;
+          try {
+            proxyUrl = normalizeProxyUrl(elements.proxyUrl.value);
+          } catch (error) {
+            updateConnectionStatus("error", error.message);
+            elements.proxyUrl.focus();
+            return;
+          }
+
+          state.prefs = {
+            schema_version: 1,
+            theme: elements.themeSelect.value,
+            backend_proxy_url: proxyUrl,
+            ui_density: elements.densitySelect.value,
+            last_tab: state.activeTab,
+          };
+          state.appToken = elements.appToken.value;
+          state.devBraveKey = elements.devBraveKey.value;
+          state.devMinimaxKey = elements.devMinimaxKey.value;
+          state.telemetryOptIn = elements.telemetryOptIn.checked;
+          persistPreferences();
+          applyPreferences();
+          updateConnectionStatus("testing", "Testing connection…");
+          elements.saveTestButton.disabled = true;
+
+          try {
+            const response = await fetch(`${proxyUrl}/api/health`, {
+              headers: { "X-Request-Id": crypto.randomUUID() },
+              cache: "no-store",
+            });
+            const body = await response.json();
+            if (!response.ok || !body.ok) {
+              throw new Error(body.message || "The proxy health check failed.");
+            }
+            const providersReady = body.brave_configured && body.minimax_configured;
+            updateConnectionStatus(
+              providersReady ? "connected" : "error",
+              providersReady ? `Connected · proxy ${body.version}` : "Connected, but provider keys are missing",
+            );
+          } catch (error) {
+            updateConnectionStatus("error", error.message || "Proxy unavailable");
+          } finally {
+            elements.saveTestButton.disabled = false;
+          }
+        }
+
+        function updateConnectionStatus(connection, text) {
+          state.connection = connection;
+          elements.connectionStatus.dataset.state = connection;
+          elements.connectionStatusText.textContent = text;
+        }
+
+        async function startAnalysis() {
+          const prompt = elements.prompt.value.trim().replace(/\s+/g, " ");
+          if (prompt.length < 1 || prompt.length > 400) {
+            showError({
+              code: "E_INPUT_INVALID",
+              message: "Forecast question must contain between 1 and 400 characters.",
+              action: "edit_input",
+            });
+            return;
+          }
+          if (!state.prefs.backend_proxy_url || !state.appToken) {
+            showError({
+              code: "E_PROXY_OFFLINE",
+              message:
+                "Future•Scope requires a configured secure proxy and app access token.",
+              action: "open_settings",
+            });
+            return;
+          }
+
+          setLoading(true);
+          const requestId = crypto.randomUUID();
+          try {
+            const response = await apiFetch("/api/analyze", {
+              method: "POST",
+              requestId,
+              body: {
+                prompt,
+                research_depth: elements.researchDepth.value,
+                time_horizon_override: null,
+                locale: navigator.language || "en-US",
+              },
+            });
+            state.analysis = response;
+            state.lastSuccessfulAt = new Date();
+            activateAnalysisWorkspace();
+          } catch (error) {
+            if (state.analysis && state.lastSuccessfulAt) {
+              document.querySelector("#metric-last-run").textContent = "Stale · update recommended";
+            }
+            showError(error);
+          } finally {
+            setLoading(false);
+          }
+        }
+
+        async function apiFetch(path, options = {}) {
+          const requestId = options.requestId ?? crypto.randomUUID();
+          let response;
+          try {
+            response = await fetch(`${state.prefs.backend_proxy_url}${path}`, {
+              method: options.method ?? "GET",
+              headers: {
+                "Content-Type": "application/json",
+                "X-App-Token": state.appToken,
+                "X-Request-Id": requestId,
+                ...(state.devBraveKey ? { "X-Dev-Brave-Key": state.devBraveKey } : {}),
+                ...(state.devMinimaxKey
+                  ? { "X-Dev-Minimax-Key": state.devMinimaxKey }
+                  : {}),
+              },
+              body: options.body ? JSON.stringify(options.body) : undefined,
+              cache: "no-store",
+            });
+          } catch {
+            throw {
+              code: "E_PROXY_OFFLINE",
+              message: "The configured proxy could not be reached.",
+              action: "open_settings",
+              request_id: requestId,
+            };
+          }
+
+          let body;
+          try {
+            body = await response.json();
+          } catch {
+            body = {
+              code: "E_INTERNAL",
+              message: "The proxy returned an unreadable response.",
+              request_id: response.headers.get("X-Request-Id") || requestId,
+            };
+          }
+          if (!response.ok) throw body;
+          return body;
+        }
+
+        function setLoading(active) {
+          elements.loadingLayer.classList.toggle("hidden", !active);
+          elements.analyzeButton.disabled = active;
+          document.querySelector(".center-panel").setAttribute("aria-busy", String(active));
+        }
+
+        function activateAnalysisWorkspace() {
+          state.factors = Object.fromEntries(
+            (state.analysis.factors ?? []).map((factor) => [factor.id, factor.value ?? 0.5]),
+          );
+          state.baselineProbabilities = Object.fromEntries(
+            (state.analysis.outcomes ?? []).map((outcome) => [
+              outcome.id,
+              outcome.current_probability,
+            ]),
+          );
+          state.userEvents = [];
+          state.selectedOutcomeId = state.analysis.outcomes?.[0]?.id ?? null;
+          elements.emptyState.classList.add("hidden");
+          document.querySelector(".workspace").classList.remove("is-empty");
+          elements.viewRoot.classList.remove("hidden");
+          elements.leftRail.classList.remove("hidden");
+          elements.rightRail.classList.remove("hidden");
+          elements.metricStrip.classList.remove("hidden");
+          elements.exportButton.classList.remove("hidden");
+          elements.tabs.forEach((tab) => {
+            tab.disabled = false;
+          });
+          updateMetrics();
+          renderFactorControls();
+          renderEventControls();
+          renderEvidencePanel();
+          selectTab(state.activeTab);
+          showToast("Live analysis loaded.");
+        }
+
+        function updateMetrics() {
+          if (!state.analysis) return;
+          document.querySelector("#metric-sources").textContent = String(
+            state.analysis.sources?.length ?? 0,
+          );
+          document.querySelector("#metric-confidence").textContent = `${Math.round(
+            (state.analysis.confidence?.overall ?? 0) * 100,
+          )}%`;
+          document.querySelector("#metric-contradictions").textContent = String(
+            state.analysis.contradictions?.length ?? 0,
+          );
+          document.querySelector("#metric-last-run").textContent = "Just now";
+        }
+
+        function selectTab(tabId) {
+          if (!state.analysis || !TAB_IDS.includes(tabId)) return;
+          state.activeTab = tabId;
+          state.prefs.last_tab = tabId;
+          persistPreferences();
+          elements.tabs.forEach((tab, index) => {
+            const selected = TAB_IDS[index] === tabId;
+            tab.setAttribute("aria-selected", String(selected));
+            tab.tabIndex = selected ? 0 : -1;
+          });
+          renderActiveView();
+        }
+
+        function handleTabKeydown(event, index) {
+          if (!state.analysis || !["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) {
+            return;
+          }
+          event.preventDefault();
+          let nextIndex = index;
+          if (event.key === "ArrowLeft") nextIndex = (index - 1 + TAB_IDS.length) % TAB_IDS.length;
+          if (event.key === "ArrowRight") nextIndex = (index + 1) % TAB_IDS.length;
+          if (event.key === "Home") nextIndex = 0;
+          if (event.key === "End") nextIndex = TAB_IDS.length - 1;
+          elements.tabs[nextIndex].focus();
+          elements.tabs[nextIndex].click();
+        }
+
+        function renderActiveView() {
+          if (!state.analysis) return;
+          const renderers = {
+            galaxy: renderGalaxyView,
+            ranked: renderRankedView,
+            tree: renderTreeView,
+            timeline: renderTimelineView,
+            matrix: renderMatrixView,
+            simulation: renderSimulationView,
+          };
+          elements.viewRoot.replaceChildren(renderers[state.activeTab]());
+        }
+
+        function renderGalaxyView() {
+          const { view, body } = createView(
+            "Probability field",
+            "Outcome area represents probability; color and labels preserve confidence and direction.",
+          );
+          const stage = createElement("div", "galaxy-stage");
+          const placements = [
+            [4, 9, 2, 8],
+            [8, 12, 2, 6],
+            [2, 6, 6, 10],
+            [7, 10, 7, 10],
+            [5, 8, 8, 11],
+            [9, 12, 7, 10],
+            [1, 4, 2, 5],
+            [3, 6, 1, 4],
+          ];
+
+          state.analysis.outcomes.forEach((outcome, index) => {
+            const probability = displayProbability(outcome);
+            const orb = createElement("article", "outcome-orb");
+            orb.dataset.outcomeId = outcome.id;
+            orb.style.setProperty("--orb-color", outcomeColor(outcome, index));
+            orb.style.setProperty(
+              "--orb-size",
+              `${Math.max(94, Math.min(245, 84 + probability * 3.2))}px`,
+            );
+            const placement = placements[index] ?? [3, 7, 3, 7];
+            orb.style.gridColumn = `${placement[0]} / ${placement[1]}`;
+            orb.style.gridRow = `${placement[2]} / ${placement[3]}`;
+            const title = createElement("strong", "", outcome.title);
+            const probabilityValue = createElement("span", "", `${probability.toFixed(1)}%`);
+            probabilityValue.dataset.probability = "";
+            probabilityValue.dataset.probabilityValue = "";
+            const confidence = createElement(
+              "small",
+              "",
+              `${confidenceLabel(outcome.confidence)} confidence`,
+            );
+            orb.append(title, probabilityValue, confidence);
+            stage.append(orb);
+          });
+
+          body.append(stage);
+          return view;
+        }
+
+        function renderRankedView() {
+          const { view, body } = createView(
+            "Ranked outcomes",
+            "Sorted by recalculated probability with confidence and leading drivers.",
+          );
+          const list = createElement("div", "ranked-list");
+          const sorted = [...state.analysis.outcomes].sort(
+            (left, right) => right.current_probability - left.current_probability,
+          );
+
+          sorted.forEach((outcome, index) => {
+            const probability = displayProbability(outcome);
+            const row = createElement("button", "ranked-row");
+            row.type = "button";
+            row.dataset.outcomeId = outcome.id;
+            row.style.setProperty("--outcome-color", outcomeColor(outcome, index));
+            row.setAttribute("aria-label", `Explain ${outcome.title}`);
+
+            const rank = createElement("span", "rank-number", String(index + 1));
+            const copy = createElement("span", "ranked-copy");
+            copy.append(
+              createElement("strong", "", outcome.title),
+              createElement("span", "", outcome.description),
+            );
+            const probabilityCell = createElement("span", "probability-cell");
+            const probabilityText = createElement(
+              "strong",
+              "",
+              `${probability.toFixed(1)}%`,
+            );
+            probabilityText.dataset.probability = "";
+            probabilityText.dataset.probabilityValue = "";
+            const track = createElement("span", "probability-track");
+            const fill = createElement("span");
+            fill.style.setProperty("--probability", `${probability}%`);
+            track.append(fill);
+            probabilityCell.append(probabilityText, track);
+            const confidence = createElement("span", "confidence-cell");
+            confidence.append(
+              createElement("strong", "", `${Math.round(outcome.confidence * 100)}%`),
+              document.createTextNode(confidenceLabel(outcome.confidence)),
+            );
+            row.append(rank, copy, probabilityCell, confidence);
+            row.addEventListener("click", () => {
+              state.selectedOutcomeId = outcome.id;
+              renderActiveView();
+            });
+            list.append(row);
+          });
+          body.append(list);
+
+          const selected =
+            sorted.find((outcome) => outcome.id === state.selectedOutcomeId) ?? sorted[0];
+          if (selected) body.append(renderExplainability(selected));
+          body.append(createElement("p", "coverage-note", state.analysis.coverage_note));
+          return view;
+        }
+
+        function renderExplainability(outcome) {
+          const panel = createElement("section", "explainability");
+          panel.append(createElement("h3", "", `Why ${outcome.title}`));
+          const list = createElement("ul", "driver-list");
+          topDrivers(outcome).forEach(([factorId, coefficient]) => {
+            const label =
+              state.analysis.factors.find((factor) => factor.id === factorId)?.label ??
+              titleFromId(factorId);
+            const item = createElement("li");
+            item.append(
+              createElement("span", "", label),
+              createElement(
+                "strong",
+                coefficient >= 0 ? "delta-positive" : "delta-negative",
+                `${coefficient >= 0 ? "+" : ""}${coefficient.toFixed(2)} logit`,
+              ),
+            );
+            list.append(item);
+          });
+          panel.append(list);
+          return panel;
+        }
+
+        function renderTreeView() {
+          const { view, body } = createView(
+            "Scenario tree",
+            "The resolved question branches through the strongest factors into evidence-grounded outcomes.",
+          );
+          const tree = createElement("div", "tree-map");
+          const root = createElement("div", "tree-root");
+          root.append(
+            createElement("strong", "", state.analysis.resolved_question),
+            createElement("span", "", state.analysis.time_horizon.label),
+          );
+
+          const branchColumn = createElement("div", "tree-branch-column");
+          const strongestFactors = aggregateFactorStrengths().slice(0, 3);
+          strongestFactors.forEach(([factorId, strength], index) => {
+            const branch = createElement("div", "tree-branch");
+            branch.style.setProperty("--node-color", [ "var(--green)", "var(--orange)", "var(--blue)" ][index]);
+            branch.append(
+              createElement("strong", "", titleFromId(factorId)),
+              createElement("span", "", `Contribution strength ${strength.toFixed(2)}`),
+            );
+            branchColumn.append(branch);
+          });
+
+          const outcomeColumn = createElement("div", "tree-outcome-column");
+          state.analysis.outcomes.forEach((outcome, index) => {
+            const item = createElement("article", "tree-outcome");
+            item.dataset.treeOutcome = outcome.id;
+            item.style.setProperty("--node-color", outcomeColor(outcome, index));
+            item.append(
+              createElement("output", "", `${displayProbability(outcome).toFixed(1)}%`),
+              createElement("strong", "", outcome.title),
+              createElement("span", "", `${confidenceLabel(outcome.confidence)} confidence`),
+            );
+            outcomeColumn.append(item);
+          });
+
+          tree.append(root, branchColumn, outcomeColumn);
+          body.append(tree);
+          return view;
+        }
+
+        function renderTimelineView() {
+          const { view, body } = createView(
+            "Evidence timeline",
+            "Research milestones and user events across the analysis horizon.",
+          );
+          const stage = createElement("div", "timeline-stage");
+          const axis = createElement("section", "timeline-axis");
+          const start = new Date(state.analysis.time_horizon.start);
+          const end = new Date(state.analysis.time_horizon.end);
+          const labels = createElement("div", "timeline-labels");
+          labels.append(
+            createElement("span", "", String(start.getUTCFullYear())),
+            createElement("span", "", "Analysis horizon"),
+            createElement("span", "", String(end.getUTCFullYear())),
+          );
+          const eventLayer = createElement("div", "timeline-events");
+          const timelineEvents = [
+            ...(state.analysis.events ?? []),
+            ...state.userEvents.map((event) => ({ ...event, kind: "user" })),
+          ];
+          timelineEvents.forEach((event, index) => {
+            const marker = createElement("div", "timeline-event", event.label);
+            const position = eventDatePosition(event.date, start, end, index, timelineEvents.length);
+            marker.style.left = `${position * 100}%`;
+            marker.style.setProperty(
+              "--event-color",
+              event.kind === "user" ? "var(--purple)" : "var(--cyan)",
+            );
+            eventLayer.append(marker);
+          });
+          axis.append(labels, eventLayer);
+
+          const chart = createElement("section", "timeline-chart");
+          chart.append(renderProbabilityChart());
+          stage.append(axis, chart);
+
+          state.userEvents.forEach((event) => {
+            const decay = createElement("label", "timeline-decay");
+            const output = createElement(
+              "output",
+              "",
+              `Time decay ${event.time_decay.toFixed(2)}`,
+            );
+            const slider = createElement("input");
+            slider.type = "range";
+            slider.min = "0";
+            slider.max = "1";
+            slider.step = "0.01";
+            slider.value = String((event.time_decay - 0.2) / 0.8);
+            slider.setAttribute("aria-label", `${event.label} timeline position`);
+            slider.addEventListener("input", () => {
+              event.time_decay = 0.2 + 0.8 * Number(slider.value);
+              recalculateForecast();
+            });
+            decay.append(createElement("span", "", event.label), output, slider);
+            stage.append(decay);
+          });
+
+          body.append(stage);
+          return view;
+        }
+
+        function renderProbabilityChart() {
+          const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+          svg.setAttribute("viewBox", "0 0 800 260");
+          svg.setAttribute("role", "img");
+          svg.setAttribute("aria-label", "Top outcome probability trend lines");
+          [0, 25, 50, 75, 100].forEach((percent) => {
+            const y = 230 - percent * 2;
+            const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            line.setAttribute("x1", "42");
+            line.setAttribute("x2", "780");
+            line.setAttribute("y1", String(y));
+            line.setAttribute("y2", String(y));
+            line.setAttribute("stroke", "rgba(148,163,255,.12)");
+            svg.append(line);
+            const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            label.setAttribute("x", "4");
+            label.setAttribute("y", String(y + 3));
+            label.textContent = `${percent}%`;
+            svg.append(label);
+          });
+
+          [...state.analysis.outcomes]
+            .sort((left, right) => right.current_probability - left.current_probability)
+            .slice(0, 3)
+            .forEach((outcome, index) => {
+              const baseline = (state.baselineProbabilities[outcome.id] ?? 0) * 100;
+              const current = outcome.current_probability * 100;
+              const points = Array.from({ length: 7 }, (_, pointIndex) => {
+                const progress = pointIndex / 6;
+                const curve =
+                  baseline +
+                  (current - baseline) * progress +
+                  Math.sin(progress * Math.PI * 2 + index) * (2.2 - index * 0.4);
+                return `${42 + pointIndex * 123},${230 - Math.max(0, Math.min(100, curve)) * 2}`;
+              }).join(" ");
+              const polyline = document.createElementNS(
+                "http://www.w3.org/2000/svg",
+                "polyline",
+              );
+              polyline.setAttribute("points", points);
+              polyline.setAttribute("fill", "none");
+              polyline.setAttribute("stroke", outcomeColor(outcome, index));
+              polyline.setAttribute("stroke-width", "2.5");
+              polyline.setAttribute("vector-effect", "non-scaling-stroke");
+              svg.append(polyline);
+            });
+          return svg;
+        }
+
+        function renderMatrixView() {
+          const { view, body } = createView(
+            "Outcome impact matrix",
+            "Likelihood is plotted against impact; bubble size reflects confidence-weighted evidence.",
+          );
+          const matrix = createElement("div", "matrix-stage");
+          matrix.append(
+            createElement("span", "matrix-axis-label matrix-axis-label-x", "Impact"),
+            createElement("span", "matrix-axis-label matrix-axis-label-y", "Likelihood"),
+          );
+          state.analysis.outcomes.forEach((outcome, index) => {
+            const probability = displayProbability(outcome);
+            const bubble = createElement("article", "matrix-outcome");
+            bubble.dataset.matrixOutcome = outcome.id;
+            bubble.style.left = `${Math.max(7, Math.min(93, outcome.impact * 100))}%`;
+            bubble.style.bottom = `${Math.max(7, Math.min(93, probability))}%`;
+            bubble.style.setProperty("--outcome-color", outcomeColor(outcome, index));
+            bubble.style.setProperty(
+              "--matrix-size",
+              `${Math.max(62, 54 + probability * outcome.confidence * 1.8)}px`,
+            );
+            bubble.append(
+              createElement("strong", "", `${probability.toFixed(1)}%`),
+              createElement("span", "", outcome.title),
+            );
+            matrix.append(bubble);
+          });
+          body.append(matrix);
+          return view;
+        }
+
+        function renderSimulationView() {
+          const { view, body } = createView(
+            "Simulation results",
+            "The same logit and softmax engine recalculates every outcome from active assumptions and events.",
+          );
+          const summary = createElement("div", "simulation-summary");
+          [
+            ["Total probability", "100.0%"],
+            ["Outcomes considered", String(state.analysis.outcomes.length)],
+            ["Active events", String(state.userEvents.filter((event) => event.active).length)],
+          ].forEach(([label, value]) => {
+            const item = createElement("div");
+            item.append(createElement("span", "", label), createElement("strong", "", value));
+            summary.append(item);
+          });
+          const table = createElement("div", "simulation-table");
+          [...state.analysis.outcomes]
+            .sort((left, right) => right.current_probability - left.current_probability)
+            .forEach((outcome, index) => {
+              const row = createElement("article", "simulation-row");
+              row.dataset.outcomeId = outcome.id;
+              row.style.setProperty("--outcome-color", outcomeColor(outcome, index));
+              const rank = createElement("strong", "rank-number", String(index + 1));
+              const copy = createElement("div", "ranked-copy");
+              copy.append(
+                createElement("strong", "", outcome.title),
+                createElement("span", "", outcome.description),
+              );
+              const probability = createElement(
+                "div",
+                "",
+                `${displayProbability(outcome).toFixed(1)}%`,
+              );
+              probability.dataset.probability = "";
+              probability.dataset.probabilityValue = "";
+              const baseline = state.baselineProbabilities[outcome.id] ?? outcome.current_probability;
+              const delta = (outcome.current_probability - baseline) * 100;
+              const drivers = createElement("div", "simulation-drivers");
+              drivers.append(
+                createElement(
+                  "strong",
+                  delta >= 0 ? "delta-positive" : "delta-negative",
+                  `${delta >= 0 ? "+" : ""}${delta.toFixed(1)} points`,
+                ),
+                createElement(
+                  "div",
+                  "",
+                  topDrivers(outcome)
+                    .slice(0, 2)
+                    .map(([factorId]) => titleFromId(factorId))
+                    .join(" · "),
+                ),
+              );
+              row.append(rank, copy, probability, drivers);
+              table.append(row);
+            });
+          body.append(summary, table);
+          return view;
+        }
+
+        function createView(title, description) {
+          const view = createElement("section", "view");
+          const header = createElement("header", "view-header");
+          const copy = createElement("div");
+          copy.append(createElement("h2", "", title), createElement("p", "", description));
+          const total = createElement("div", "total-probability");
+          total.append(
+            document.createTextNode("Total probability"),
+            createElement("strong", "", "100.0%"),
+          );
+          header.append(copy, total);
+          const body = createElement("div");
+          view.append(header, body);
+          return { view, body };
+        }
+
+        function renderFactorControls() {
+          elements.factorControls.replaceChildren();
+          const section = createElement("section", "control-section");
+          const heading = createElement("h3", "control-heading");
+          heading.append(
+            createElement("span", "", "Assumption sliders"),
+            createResetFactorsButton(),
+          );
+          section.append(heading);
+
+          state.analysis.factors.forEach((factor) => {
+            const wrapper = createElement("div", "factor-control");
+            const label = createElement("label", "", factor.label);
+            const inputId = `factor-${factor.id}`;
+            label.htmlFor = inputId;
+            const output = createElement(
+              "output",
+              "",
+              `${Math.round((state.factors[factor.id] ?? 0.5) * 100)}%`,
+            );
+            output.htmlFor = inputId;
+            const slider = createElement("input");
+            slider.id = inputId;
+            slider.type = "range";
+            slider.min = "0";
+            slider.max = "1";
+            slider.step = "0.01";
+            slider.value = String(state.factors[factor.id] ?? 0.5);
+            slider.setAttribute("aria-label", factor.label);
+            slider.addEventListener("input", () => {
+              state.factors[factor.id] = Number(slider.value);
+              output.textContent = `${Math.round(Number(slider.value) * 100)}%`;
+              recalculateForecast();
+            });
+            wrapper.append(label, output, slider);
+            section.append(wrapper);
+          });
+          elements.factorControls.append(section);
+        }
+
+        function createResetFactorsButton() {
+          const button = createElement("button", "icon-button", "Reset");
+          button.type = "button";
+          button.setAttribute("aria-label", "Reset assumptions");
+          button.addEventListener("click", () => {
+            Object.keys(state.factors).forEach((factorId) => {
+              state.factors[factorId] = 0.5;
+            });
+            renderFactorControls();
+            recalculateForecast();
+          });
+          return button;
+        }
+
+        function renderEventControls() {
+          elements.eventControls.replaceChildren();
+          const entrySection = createElement("section", "control-section");
+          entrySection.append(createElement("h3", "control-heading", "Add event"));
+          const entry = createElement("div", "event-entry");
+          const label = createElement("label", "visually-hidden", "New event");
+          label.htmlFor = "new-event-input";
+          const input = createElement("input", "field");
+          input.id = "new-event-input";
+          input.type = "text";
+          input.placeholder = "Describe a future event";
+          input.setAttribute("aria-label", "New event");
+          const addButton = createElement("button", "button button-primary", "Add event");
+          addButton.type = "button";
+          addButton.addEventListener("click", async () => {
+            const eventLabel = input.value.trim().replace(/\s+/g, " ");
+            if (!eventLabel || eventLabel.length > 180) {
+              showError({
+                code: "E_INPUT_INVALID",
+                message: "Event labels must contain between 1 and 180 characters.",
+                action: "edit_event",
+              });
+              return;
+            }
+            addButton.disabled = true;
+            try {
+              const result = await apiFetch("/api/simulate/event-impact", {
+                method: "POST",
+                body: {
+                  event_label: eventLabel,
+                  event_date: null,
+                  current_payload_summary: {
+                    analysis_id: state.analysis.analysis_id,
+                    resolved_question: state.analysis.resolved_question,
+                    outcomes: state.analysis.outcomes.map((outcome) => ({
+                      id: outcome.id,
+                      title: outcome.title,
+                    })),
+                    factor_ids: state.analysis.factors.map((factor) => factor.id),
+                  },
+                },
+              });
+              state.userEvents.push({
+                id: crypto.randomUUID(),
+                label: result.event_label,
+                date: result.event_date,
+                active: true,
+                time_decay: 1,
+                impacts: result.impacts,
+                explanations: result.explanations,
+              });
+              input.value = "";
+              renderEventControls();
+              recalculateForecast();
+            } catch (error) {
+              showError(error);
+            } finally {
+              addButton.disabled = false;
+            }
+          });
+          entry.append(label, input, addButton);
+          entrySection.append(entry);
+
+          const activeSection = createElement("section", "control-section");
+          activeSection.append(
+            createElement(
+              "h3",
+              "control-heading",
+              `Active events (${state.userEvents.filter((event) => event.active).length})`,
+            ),
+          );
+          if (state.userEvents.length === 0) {
+            activeSection.append(
+              createElement(
+                "p",
+                "setting-help",
+                "No user events. Add one to test a concrete change in conditions.",
+              ),
+            );
+          } else {
+            state.userEvents.forEach((event) => {
+              const card = createElement("article", "event-card");
+              card.dataset.userEvent = event.id;
+              const head = createElement("div", "event-card-head");
+              const toggle = createElement("input");
+              toggle.type = "checkbox";
+              toggle.checked = event.active;
+              toggle.setAttribute("aria-label", `Enable ${event.label}`);
+              const copy = createElement("div");
+              copy.append(
+                createElement("div", "event-card-title", event.label),
+                createElement("div", "event-state", event.active ? "Active" : "Inactive"),
+              );
+              const remove = createElement("button", "button event-delete", "Delete");
+              remove.type = "button";
+              remove.setAttribute("aria-label", "Delete event");
+              toggle.addEventListener("change", () => {
+                event.active = toggle.checked;
+                renderEventControls();
+                recalculateForecast();
+              });
+              remove.addEventListener("click", () => {
+                state.userEvents = state.userEvents.filter(
+                  (candidate) => candidate.id !== event.id,
+                );
+                renderEventControls();
+                recalculateForecast();
+              });
+              head.append(toggle, copy, remove);
+              card.append(head);
+              activeSection.append(card);
+            });
+          }
+          elements.eventControls.append(entrySection, activeSection);
+        }
+
+        function renderEvidencePanel() {
+          elements.evidencePanel.replaceChildren();
+          const tabs = createElement("div", "evidence-tabs");
+          ["supporting", "opposing", "neutral"].forEach((filter) => {
+            const button = createElement(
+              "button",
+              "evidence-tab",
+              filter[0].toUpperCase() + filter.slice(1),
+            );
+            button.type = "button";
+            button.setAttribute("aria-selected", String(state.evidenceFilter === filter));
+            button.addEventListener("click", () => {
+              state.evidenceFilter = filter;
+              renderEvidencePanel();
+            });
+            tabs.append(button);
+          });
+          const evidenceList = createElement("ul", "evidence-list");
+          const matchingEvidence = state.analysis.evidence_items
+            .filter((item) => item.stance === state.evidenceFilter)
+            .slice(0, 6);
+          if (matchingEvidence.length === 0) {
+            evidenceList.append(
+              createElement("li", "evidence-item", `No ${state.evidenceFilter} evidence returned.`),
+            );
+          } else {
+            matchingEvidence.forEach((item) => {
+              const entry = createElement("li", "evidence-item");
+              entry.append(createElement("p", "", item.claim));
+              const meta = createElement("div", "evidence-meta");
+              meta.append(
+                createElement("span", "", item.source_ids.join(", ")),
+                createElement("span", "", `${Math.round(item.strength * 100)}% strength`),
+              );
+              entry.append(meta);
+              evidenceList.append(entry);
+            });
+          }
+
+          const sourceHeading = createElement("h3", "evidence-section-title", "Top sources");
+          const sourceList = createElement("ul", "source-list");
+          state.analysis.sources.slice(0, 8).forEach((source) => {
+            const item = createElement("li", "source-item");
+            const link = createElement("a", "", source.title);
+            link.href = safeExternalUrl(source.url);
+            link.target = "_blank";
+            link.rel = "noopener noreferrer";
+            const meta = createElement("div", "source-meta");
+            meta.append(
+              createElement("span", "", source.domain),
+              createElement("span", "", `${Math.round(source.quality_score * 100)} quality`),
+            );
+            item.append(link, meta);
+            sourceList.append(item);
+          });
+
+          const contradictionHeading = createElement(
+            "h3",
+            "evidence-section-title",
+            "Contradictions",
+          );
+          const contradictionList = createElement("ul", "contradiction-list");
+          (state.analysis.contradictions ?? []).forEach((contradiction) => {
+            const item = createElement("li", "contradiction-item");
+            item.append(
+              createElement("p", "", contradiction.topic),
+              createElement(
+                "div",
+                "evidence-meta",
+                `${contradiction.resolution.replaceAll("_", " ")} · ${contradiction.source_ids.join(", ")}`,
+              ),
+            );
+            contradictionList.append(item);
+          });
+
+          elements.evidencePanel.append(
+            tabs,
+            evidenceList,
+            sourceHeading,
+            sourceList,
+            contradictionHeading,
+            contradictionList,
+          );
+        }
+
+        function recalculateForecast() {
+          const logits = state.analysis.outcomes.map((outcome) => {
+            let logit = outcome.base_logit;
+            Object.entries(outcome.factor_coefficients).forEach(
+              ([factorId, coefficient]) => {
+                logit += coefficient * ((state.factors[factorId] ?? 0.5) - 0.5);
+              },
+            );
+            state.userEvents.forEach((event) => {
+              if (event.active) {
+                logit += (event.impacts[outcome.id] ?? 0) * event.time_decay;
+              }
+            });
+            return logit;
+          });
+          const maximum = Math.max(...logits);
+          const exponentials = logits.map((logit) => Math.exp(logit - maximum));
+          const denominator = exponentials.reduce((sum, value) => sum + value, 0);
+          const raw = exponentials.map((value) => value / denominator);
+          const displayed = largestRemainderInTenths(raw);
+          state.analysis.outcomes.forEach((outcome, index) => {
+            outcome.previous_probability = outcome.current_probability;
+            outcome.current_probability = Number(raw[index].toFixed(6));
+            outcome.display_probability = displayed[index];
+          });
+          state.analysis.probability_model.raw_probabilities = Object.fromEntries(
+            state.analysis.outcomes.map((outcome) => [
+              outcome.id,
+              outcome.current_probability,
+            ]),
+          );
+          renderActiveView();
+        }
+
+        function largestRemainderInTenths(probabilities) {
+          const floors = probabilities.map((value) => Math.floor(value * 1000));
+          const remaining = 1000 - floors.reduce((sum, value) => sum + value, 0);
+          const ranked = probabilities
+            .map((value, index) => ({
+              index,
+              remainder: value * 1000 - floors[index],
+            }))
+            .sort(
+              (left, right) => right.remainder - left.remainder || left.index - right.index,
+            );
+          for (let index = 0; index < remaining; index += 1) {
+            floors[ranked[index].index] += 1;
+          }
+          return floors.map((value) => value / 10);
+        }
+
+        function aggregateFactorStrengths() {
+          const scores = {};
+          state.analysis.outcomes.forEach((outcome) => {
+            Object.entries(outcome.factor_coefficients).forEach(([factorId, coefficient]) => {
+              scores[factorId] = (scores[factorId] ?? 0) + Math.abs(coefficient);
+            });
+          });
+          return Object.entries(scores).sort((left, right) => right[1] - left[1]);
+        }
+
+        function topDrivers(outcome) {
+          return Object.entries(outcome.factor_coefficients).sort(
+            (left, right) => Math.abs(right[1]) - Math.abs(left[1]),
+          );
+        }
+
+        function displayProbability(outcome) {
+          return Number.isFinite(outcome.display_probability)
+            ? outcome.display_probability
+            : outcome.current_probability * 100;
+        }
+
+        function confidenceLabel(confidence) {
+          if (confidence >= 0.75) return "High";
+          if (confidence >= 0.55) return "Medium";
+          if (confidence >= 0.35) return "Low";
+          return "Very low";
+        }
+
+        function outcomeColor(outcome, index) {
+          const colors = {
+            positive: "var(--green)",
+            neutral: "var(--blue)",
+            negative: "var(--red)",
+            uncertain: "var(--orange)",
+          };
+          return (
+            colors[outcome.category] ??
+            ["var(--purple)", "var(--blue)", "var(--cyan)", "var(--orange)", "var(--red)"][
+              index % 5
+            ]
+          );
+        }
+
+        function titleFromId(identifier) {
+          return String(identifier)
+            .split("_")
+            .map((word) => word[0].toUpperCase() + word.slice(1))
+            .join(" ");
+        }
+
+        function eventDatePosition(date, start, end, index, total) {
+          if (!date || Number.isNaN(Date.parse(date))) {
+            return (index + 1) / (total + 1);
+          }
+          const position = (Date.parse(date) - start.getTime()) / (end.getTime() - start.getTime());
+          return Math.max(0.04, Math.min(0.96, position));
+        }
+
+        function safeExternalUrl(rawUrl) {
+          try {
+            const url = new URL(rawUrl);
+            return url.protocol === "https:" ? url.toString() : "about:blank";
+          } catch {
+            return "about:blank";
+          }
+        }
+
+        function createElement(tagName, className = "", text = null) {
+          const element = document.createElement(tagName);
+          if (className) element.className = className;
+          if (text !== null) element.textContent = text;
+          return element;
+        }
+
+        function showError(error) {
+          const normalized = {
+            code: error?.code || "E_INTERNAL",
+            message: error?.message || "The request could not be completed.",
+            action: error?.action || null,
+            request_id: error?.request_id || null,
+          };
+          elements.errorCode.textContent = normalized.code;
+          elements.errorMessage.textContent = normalized.message;
+          elements.errorRequestId.textContent = normalized.request_id
+            ? `Request ID: ${normalized.request_id}`
+            : "";
+          state.errorAction =
+            normalized.action === "open_settings"
+              ? openSettings
+              : normalized.action === "edit_input"
+                ? () => elements.prompt.focus()
+                : null;
+          elements.errorActionButton.textContent = state.errorAction ? "Take action" : "Close";
+          if (!elements.errorDialog.open) elements.errorDialog.showModal();
+        }
+
+        function closeError() {
+          if (elements.errorDialog.open) elements.errorDialog.close();
+          state.errorAction = null;
+        }
+
+        function runErrorAction() {
+          const action = state.errorAction;
+          closeError();
+          action?.();
+        }
+
+        function showToast(message) {
+          const toast = document.createElement("div");
+          toast.className = "toast";
+          toast.textContent = message;
+          elements.toastRegion.append(toast);
+          setTimeout(() => toast.remove(), 4_000);
+        }
+
+        function exportAnalysis() {
+          if (!state.analysis) return;
+          const blob = new Blob([JSON.stringify(state.analysis, null, 2)], {
+            type: "application/json",
+          });
+          const link = document.createElement("a");
+          link.href = URL.createObjectURL(blob);
+          link.download = `future-scope-${state.analysis.analysis_id}.json`;
+          link.click();
+          URL.revokeObjectURL(link.href);
+        }
+
+        function normalizeProxyUrl(value) {
+          const trimmed = value.trim();
+          if (!trimmed) throw new Error("Enter a backend proxy URL.");
+          const url = new URL(trimmed);
+          if (!["http:", "https:"].includes(url.protocol)) {
+            throw new Error("Proxy URL must use HTTP or HTTPS.");
+          }
+          if (url.username || url.password) {
+            throw new Error("Proxy URL must not contain credentials.");
+          }
+          url.pathname = url.pathname.replace(/\/+$/, "");
+          url.search = "";
+          url.hash = "";
+          return url.toString().replace(/\/$/, "");
+        }
+      })();
+    </script>
+  </body>
+</html>

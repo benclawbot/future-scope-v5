@@ -1,0 +1,272 @@
+import { validateSearchInput } from "./validation.js";
+
+const DEFAULT_BRAVE_URL = "https://api.search.brave.com/res/v1/web/search";
+const DEFAULT_MINIMAX_URL = "https://api.minimax.io/v1/chat/completions";
+const TRACKING_PARAMETERS = new Set([
+  "fbclid",
+  "gclid",
+  "igshid",
+  "mc_cid",
+  "mc_eid",
+  "ref",
+  "ref_src",
+]);
+
+export async function searchBrave(input, options = {}) {
+  const request = validateSearchInput(input);
+  const apiKey = requireSecret(options.apiKey, "BRAVE_SEARCH_API_KEY");
+  const endpoint = new URL(options.baseUrl ?? DEFAULT_BRAVE_URL);
+  endpoint.searchParams.set("q", request.query);
+  endpoint.searchParams.set("count", String(request.count));
+  endpoint.searchParams.set("country", request.country);
+  endpoint.searchParams.set("search_lang", request.search_lang);
+  endpoint.searchParams.set("extra_snippets", String(request.extra_snippets));
+  endpoint.searchParams.set("text_decorations", "false");
+  if (request.freshness) endpoint.searchParams.set("freshness", request.freshness);
+
+  const response = await fetchWithRetry(endpoint.toString(), {
+    fetchImpl: options.fetchImpl,
+    sleep: options.sleep,
+    timeoutMs: options.timeoutMs ?? 10_000,
+    retryStatuses: [500, 502, 503, 504],
+    requestInit: {
+      headers: {
+        Accept: "application/json",
+        "Accept-Encoding": "gzip",
+        "X-Subscription-Token": apiKey,
+      },
+    },
+  });
+
+  if (!response.ok) {
+    const error = new Error(`Brave Search returned HTTP ${response.status}`);
+    error.provider = "brave";
+    error.status = response.status;
+    throw error;
+  }
+
+  const body = await response.json();
+  const now = options.now?.() ?? new Date();
+  const results = (body.web?.results ?? []).slice(0, request.count).map((result, index) => {
+    const canonicalUrl = canonicalizeUrl(result.url);
+    const parsedDate = parseDate(result.page_age ?? result.age ?? result.published_time);
+    return {
+      id: `src_${String(index + 1).padStart(3, "0")}`,
+      title: cleanText(result.title),
+      url: canonicalUrl,
+      canonical_url: canonicalUrl,
+      domain: new URL(canonicalUrl).hostname,
+      description: cleanText(result.description),
+      extra_snippets: Array.isArray(result.extra_snippets)
+        ? result.extra_snippets.map(cleanText).filter(Boolean).slice(0, 5)
+        : [],
+      published_or_discovered_date: parsedDate,
+      retrieved_at: now.toISOString(),
+    };
+  });
+
+  return {
+    query: request.query,
+    results,
+  };
+}
+
+export async function callMiniMaxJson(request, options = {}) {
+  const apiKey = requireSecret(options.apiKey, "MINIMAX_API_KEY");
+  const fetchImpl = options.fetchImpl ?? fetch;
+  const baseMessages = [
+    {
+      role: "system",
+      content: `[AGENT:${request.agent}] ${request.system}`,
+    },
+    { role: "user", content: request.user },
+  ];
+
+  let messages = baseMessages;
+  let lastError;
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    const response = await fetchWithRetry(options.baseUrl ?? DEFAULT_MINIMAX_URL, {
+      fetchImpl,
+      sleep: options.sleep,
+      timeoutMs: options.timeoutMs ?? 60_000,
+      retryStatuses: [500, 502, 503, 504],
+      requestInit: {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: options.model ?? "MiniMax-M3",
+          thinking: { type: "adaptive" },
+          messages,
+          temperature: 0.2,
+          max_completion_tokens: options.maxCompletionTokens ?? 8192,
+        }),
+      },
+    });
+
+    if (!response.ok) {
+      const error = new Error(`MiniMax returned HTTP ${response.status}`);
+      error.provider = "minimax";
+      error.status = response.status;
+      throw error;
+    }
+
+    const body = await response.json();
+    const content = body.choices?.[0]?.message?.content;
+    try {
+      if (typeof content !== "string") {
+        throw new Error("MiniMax response did not contain message content");
+      }
+      const parsed = extractFirstJsonObject(content);
+      return request.validate ? request.validate(parsed) : parsed;
+    } catch (error) {
+      lastError = error;
+      if (attempt === 1) break;
+      messages = [
+        ...baseMessages,
+        { role: "assistant", content },
+        {
+          role: "user",
+          content:
+            "Repair the prior response. Return one JSON object only and satisfy this validation error: " +
+            String(error.message).slice(0, 500),
+        },
+      ];
+    }
+  }
+
+  const error = new Error(`MiniMax JSON validation failed: ${lastError?.message ?? "unknown"}`);
+  error.code = "E_LLM_INVALID_JSON";
+  error.provider = "minimax";
+  throw error;
+}
+
+export function extractFirstJsonObject(text) {
+  const source = String(text).replace(/<think>[\s\S]*?<\/think>/gi, "");
+
+  for (let start = source.indexOf("{"); start !== -1; start = source.indexOf("{", start + 1)) {
+    let depth = 0;
+    let inString = false;
+    let escaped = false;
+
+    for (let index = start; index < source.length; index += 1) {
+      const character = source[index];
+      if (inString) {
+        if (escaped) escaped = false;
+        else if (character === "\\") escaped = true;
+        else if (character === '"') inString = false;
+        continue;
+      }
+
+      if (character === '"') {
+        inString = true;
+      } else if (character === "{") {
+        depth += 1;
+      } else if (character === "}") {
+        depth -= 1;
+        if (depth === 0) {
+          const candidate = source.slice(start, index + 1);
+          try {
+            return JSON.parse(candidate);
+          } catch {
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  throw new Error("No valid JSON object found");
+}
+
+export function canonicalizeUrl(rawUrl) {
+  const url = new URL(rawUrl);
+  url.protocol = url.protocol.toLowerCase();
+  url.hostname = url.hostname.toLowerCase();
+  url.hash = "";
+
+  for (const key of [...url.searchParams.keys()]) {
+    if (key.toLowerCase().startsWith("utm_") || TRACKING_PARAMETERS.has(key.toLowerCase())) {
+      url.searchParams.delete(key);
+    }
+  }
+  url.searchParams.sort();
+
+  if (url.pathname.length > 1) {
+    url.pathname = url.pathname.replace(/\/+$/, "");
+  }
+  return url.toString();
+}
+
+export function deduplicateSources(sources) {
+  const seenUrls = new Set();
+  const seenTitles = new Set();
+  const unique = [];
+
+  for (const source of sources) {
+    let canonicalUrl;
+    try {
+      canonicalUrl = canonicalizeUrl(source.url);
+    } catch {
+      continue;
+    }
+    const normalizedTitle = cleanText(source.title).toLowerCase();
+    if (!normalizedTitle || seenUrls.has(canonicalUrl) || seenTitles.has(normalizedTitle)) {
+      continue;
+    }
+    seenUrls.add(canonicalUrl);
+    seenTitles.add(normalizedTitle);
+    unique.push({ ...source, url: canonicalUrl, canonical_url: canonicalUrl });
+  }
+  return unique;
+}
+
+async function fetchWithRetry(url, options) {
+  const fetchImpl = options.fetchImpl ?? fetch;
+  const sleep = options.sleep ?? ((milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds)));
+  let lastError;
+
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), options.timeoutMs);
+    try {
+      const response = await fetchImpl(url, {
+        ...options.requestInit,
+        signal: controller.signal,
+      });
+      if (attempt === 0 && options.retryStatuses.includes(response.status)) {
+        await sleep(500);
+        continue;
+      }
+      return response;
+    } catch (error) {
+      lastError = error;
+      if (attempt === 0) {
+        await sleep(500);
+        continue;
+      }
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+  throw lastError ?? new Error("Upstream request failed");
+}
+
+function requireSecret(value, name) {
+  if (typeof value !== "string" || value.length < 8) {
+    throw new Error(`${name} is not configured`);
+  }
+  return value;
+}
+
+function cleanText(value) {
+  return typeof value === "string" ? value.replace(/\s+/g, " ").trim() : "";
+}
+
+function parseDate(value) {
+  if (typeof value !== "string" || !value.trim()) return null;
+  const timestamp = Date.parse(value);
+  return Number.isNaN(timestamp) ? null : new Date(timestamp).toISOString().slice(0, 10);
+}
