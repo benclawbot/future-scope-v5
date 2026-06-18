@@ -2,6 +2,52 @@
 
 Future•Scope is a live-only, source-grounded forecasting workspace. It begins empty, researches a bounded question through Brave Search, uses MiniMax agents to structure evidence and outcomes, and recalculates probabilities through one deterministic logit/softmax engine.
 
+## Interface tour
+
+These screenshots use controlled local contract data so the complete interface can be reviewed without exposing provider credentials or embedding a default forecast in production.
+
+### Galaxy
+
+The probability field sizes outcomes by probability while preserving direction, confidence, and immediate comparison.
+
+![Future Scope Galaxy probability field](screenshots/galaxy.png)
+
+### Ranked
+
+The ranked view combines recalculated probability, confidence, leading drivers, and the strongest outcome's factor contributions.
+
+![Future Scope ranked outcomes](screenshots/ranked.png)
+
+### Tree
+
+The scenario tree connects the resolved question to its strongest factors and evidence-grounded outcomes.
+
+![Future Scope scenario tree](screenshots/tree.png)
+
+### Timeline
+
+The timeline places milestones across the analysis horizon and plots probability movement through time.
+
+![Future Scope evidence timeline](screenshots/timeline.png)
+
+### Matrix
+
+The impact matrix compares likelihood and consequence while scaling each bubble by confidence-weighted evidence.
+
+![Future Scope outcome impact matrix](screenshots/matrix.png)
+
+### Simulation
+
+The simulation view exposes the deterministic recalculation results, active event count, and point changes for every outcome.
+
+![Future Scope simulation results](screenshots/simulation.png)
+
+### Settings
+
+Settings configure appearance and the secure Worker connection. The app access token is session-only, masked, and never stored in localStorage.
+
+![Future Scope settings](screenshots/settings.png)
+
 ## What is included
 
 `index.html` is the complete browser application with embedded CSS and JavaScript. `proxy/worker.js` is the Cloudflare Worker entry point. The proxy owns provider credentials, app authentication, rate limiting, validation, error mapping, request IDs, security headers, and structured logs.
