@@ -1,0 +1,25 @@
+{
+  "name": "future-scope",
+  "version": "5.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "check:csp": "node scripts/verify-csp.mjs",
+    "check:data": "node scripts/check-production-data.mjs",
+    "check:syntax": "node --check proxy/worker.js && node --check proxy/agents.js && node --check proxy/providers.js && node --check proxy/probability.js && node --check proxy/validation.js",
+    "check": "npm run check:syntax && npm run check:csp && npm run check:data",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.61.0",
+    "vitest": "4.1.9",
+    "wrangler": "4.102.0"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}
