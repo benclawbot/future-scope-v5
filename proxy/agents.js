@@ -15,6 +15,119 @@ import {
 
 const AGENT_SYSTEM =
   "Return exactly one JSON object. Use only the supplied evidence. Do not invent factual claims, sources, identifiers, probabilities, or coefficients.";
+const OUTPUT_SCHEMAS = Object.freeze({
+  A0: {
+    domain: "technology|markets|geopolitics|personal|product|science|legal|other",
+    time_horizon: { label: "string", start: "ISO timestamp", end: "ISO timestamp" },
+    forecast_question: "string",
+    entities: ["string"],
+    location_scope: "global|country|region|null",
+    needs_clarification: false,
+    assumptions_if_not_clarified: ["string"],
+  },
+  A1: { queries: ["distinct Brave query strings"] },
+  A3: {
+    scores: [
+      {
+        source_id: "provided source id",
+        authority_score: "number 0..1",
+        recency_score: "number 0..1",
+        relevance_score: "number 0..1",
+        primary_source_score: "number 0..1",
+        specificity_score: "number 0..1",
+        domain_diversity_bonus: "number 0..1",
+      },
+    ],
+  },
+  A4: {
+    evidence_items: [
+      {
+        id: "ev_001",
+        claim: "atomic sourced claim",
+        source_ids: ["provided source id"],
+        supports: ["outcome id when known, otherwise descriptive direction"],
+        opposes: ["outcome id when known, otherwise descriptive direction"],
+        strength: "number 0..1",
+        quality_weight: "number 0..1",
+        date: "YYYY-MM-DD|null",
+        stance: "supporting|opposing|neutral",
+      },
+    ],
+  },
+  A5: {
+    contradictions: [
+      {
+        topic: "string",
+        claim_a: "string",
+        claim_b: "string",
+        source_ids: ["provided source ids"],
+        resolution: "unresolved|source_a_stronger|source_b_stronger|time_order_explains",
+      },
+    ],
+    staleness_warnings: ["string"],
+    events: [{ id: "evt_research_001", label: "string", date: "ISO timestamp", kind: "research" }],
+  },
+  A6: {
+    outcomes: [
+      {
+        id: "out_001",
+        title: "string",
+        description: "string",
+        impact: "number 0..1",
+        category: "positive|neutral|negative|uncertain",
+        speculative: false,
+        evidence_for: ["evidence id"],
+        evidence_against: ["evidence id"],
+      },
+    ],
+    coverage_note:
+      "These are the most decision-relevant outcomes identified from the evidence, not an exhaustive list of all imaginable futures.",
+  },
+  A7: { logits: [{ outcome_id: "provided outcome id", base_logit: "finite number" }] },
+  A8: {
+    calibrations: [
+      {
+        outcome_id: "provided outcome id",
+        base_logit: "finite number",
+        confidence: "number 0..1",
+      },
+    ],
+    base_rate_available: true,
+    base_rate_note: "string|null",
+  },
+  A9: {
+    models: [
+      {
+        outcome_id: "provided outcome id",
+        factor_coefficients: {
+          market_momentum: "number -2..2",
+          execution_quality: "number -2..2",
+          competitive_pressure: "number -2..2",
+          regulatory_pressure: "number -2..2",
+          resource_availability: "number -2..2",
+          technology_readiness: "number -2..2",
+        },
+        factor_coefficients_explanation: {
+          market_momentum: "string",
+          execution_quality: "string",
+          competitive_pressure: "string",
+          regulatory_pressure: "string",
+          resource_availability: "string",
+          technology_readiness: "string",
+        },
+      },
+    ],
+  },
+  EVENT: {
+    impacts: [
+      {
+        outcome_id: "provided outcome id",
+        impact: "number -2..2",
+        explanation: "string",
+      },
+    ],
+  },
+});
 
 export async function runAnalysisPipeline(input, options = {}) {
   const callJson =
@@ -65,6 +178,7 @@ export async function runAnalysisPipeline(input, options = {}) {
       locale: input.locale,
       required_output:
         "domain, time_horizon, forecast_question, entities, location_scope, needs_clarification, assumptions_if_not_clarified",
+      output_schema: OUTPUT_SCHEMAS.A0,
     },
     validateA0,
   );
@@ -78,6 +192,7 @@ export async function runAnalysisPipeline(input, options = {}) {
       minimum_queries: minimumQueries,
       coverage:
         "recent developments, primary sources, base rates, constraints, alternatives, and contradictory evidence",
+      output_schema: OUTPUT_SCHEMAS.A1,
     },
     (value) => validateA1(value, minimumQueries),
   );
@@ -115,6 +230,7 @@ export async function runAnalysisPipeline(input, options = {}) {
         "specificity_score",
         "domain_diversity_bonus",
       ],
+      output_schema: OUTPUT_SCHEMAS.A3,
     },
     (value) => validateA3(value, candidates.map((source) => source.id)),
   );
@@ -150,6 +266,7 @@ export async function runAnalysisPipeline(input, options = {}) {
       minimum_evidence_items: minimumEvidenceItems,
       instruction:
         "Extract atomic claims. Every claim needs source_ids. Distinguish supporting, opposing, and neutral evidence.",
+      output_schema: OUTPUT_SCHEMAS.A4,
     },
     (value) => validateA4(value, sourceIds),
   );
@@ -162,6 +279,7 @@ export async function runAnalysisPipeline(input, options = {}) {
       evidence_items: evidence.evidence_items,
       instruction:
         "Identify contradictions, staleness warnings, and dated research events without resolving uncertainty silently.",
+      output_schema: OUTPUT_SCHEMAS.A5,
     },
     (value) => validateA5(value, sourceIds),
   );
@@ -173,6 +291,7 @@ export async function runAnalysisPipeline(input, options = {}) {
       evidence_items: evidence.evidence_items,
       contradictions: audit.contradictions,
       instruction: "Return 4 to 8 mutually decision-relevant outcomes and a coverage note.",
+      output_schema: OUTPUT_SCHEMAS.A6,
     },
     validateA6,
   );
@@ -185,6 +304,7 @@ export async function runAnalysisPipeline(input, options = {}) {
       outcomes: enumeration.outcomes,
       evidence_items: evidence.evidence_items,
       instruction: "Assign an evidence-grounded base_logit to every outcome. Do not round probabilities.",
+      output_schema: OUTPUT_SCHEMAS.A7,
     },
     (value) => validateA7(value, outcomeIds),
   );
@@ -199,6 +319,7 @@ export async function runAnalysisPipeline(input, options = {}) {
       contradictions: audit.contradictions,
       instruction:
         "Calibrate base logits and confidence. Consider base rates, sparse evidence, staleness, contradictions, and speculative outcomes.",
+      output_schema: OUTPUT_SCHEMAS.A8,
     },
     (value) => validateA8(value, outcomeIds),
   );
@@ -219,6 +340,7 @@ export async function runAnalysisPipeline(input, options = {}) {
       ],
       instruction:
         "Return all six coefficients and explanations for every outcome. Each outcome needs at least two nonzero coefficients in [-2,2].",
+      output_schema: OUTPUT_SCHEMAS.A9,
     },
     (value) => validateA9(value, outcomeIds),
   );
@@ -330,6 +452,7 @@ export async function generateEventImpact(input, options = {}) {
       ...input,
       instruction:
         "Return one impact in logit units for every outcome, bounded to [-2,2], plus a concise explanation.",
+      output_schema: OUTPUT_SCHEMAS.EVENT,
     }),
     validate: (value) => validateEventImpacts(value, outcomeIds),
   });

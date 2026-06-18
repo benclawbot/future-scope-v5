@@ -6,7 +6,7 @@
     <meta name="color-scheme" content="dark light" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'sha256-i52LzY40yqnJ3QzqRzl/eI2EvWZh0k9iqO0fEUss6bc='; style-src 'self' 'unsafe-inline' 'sha256-hKT1CzWQU+jw1Il4wjclDMwptgq9ufJsb4cHxTW8CfY='; connect-src 'self' https: http://127.0.0.1:* http://localhost:*; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; worker-src 'none'"
+      content="default-src 'self'; script-src 'sha256-ZyMsWIcQMKTq58nurQ0AqvRtUoNE6rd8NfW689ABT5Y='; style-src 'self' 'unsafe-inline' 'sha256-sNsXKqLF+yF+J0VCqhPgkdHVs7ZnXR4tfdwIaYNViU8='; connect-src 'self' https: http://127.0.0.1:* http://localhost:*; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; worker-src 'none'"
     />
     <title>Future•Scope — Live probability intelligence</title>
     <style id="app-styles">
@@ -323,6 +323,10 @@
         grid-template-columns: minmax(250px, 3fr) minmax(540px, 6fr) minmax(250px, 3fr);
         gap: 8px;
         min-height: calc(100vh - 156px);
+      }
+
+      .workspace.is-empty .center-panel {
+        grid-column: 1 / -1;
       }
 
       .panel {
@@ -1081,6 +1085,13 @@
         text-align: center;
       }
 
+      .tree-root span {
+        display: block;
+        margin-top: 7px;
+        color: var(--muted);
+        font-size: 11px;
+      }
+
       .tree-branch-column,
       .tree-outcome-column {
         display: grid;
@@ -1268,10 +1279,20 @@
       .matrix-outcome span {
         position: absolute;
         top: 100%;
+        left: 50%;
         width: 150px;
         margin-top: 6px;
         color: var(--text);
         font-size: 10px;
+        transform: translateX(-50%);
+      }
+
+      .matrix-outcome:nth-of-type(odd) span {
+        transform: translateX(-72%);
+      }
+
+      .matrix-outcome:nth-of-type(even) span {
+        transform: translateX(-28%);
       }
 
       .simulation-summary {
@@ -1512,7 +1533,7 @@
         </div>
       </section>
 
-      <main class="workspace">
+      <main class="workspace is-empty">
         <aside class="panel side-panel left-rail hidden" id="left-rail">
           <h2 class="panel-title">Assumptions and events</h2>
           <div id="factor-controls"></div>
@@ -2027,6 +2048,7 @@
           state.userEvents = [];
           state.selectedOutcomeId = state.analysis.outcomes?.[0]?.id ?? null;
           elements.emptyState.classList.add("hidden");
+          document.querySelector(".workspace").classList.remove("is-empty");
           elements.viewRoot.classList.remove("hidden");
           elements.leftRail.classList.remove("hidden");
           elements.rightRail.classList.remove("hidden");

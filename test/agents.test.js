@@ -71,4 +71,31 @@ describe("runAnalysisPipeline", () => {
       0.45,
     );
   });
+
+  test("gives every model agent an explicit output schema", async () => {
+    const requests = [];
+    const callJson = vi.fn(async (request) => {
+      requests.push(request);
+      return structuredClone(agentFixtures[request.agent]);
+    });
+
+    await runAnalysisPipeline(
+      {
+        prompt: "Will grid storage deployment accelerate by June 2028?",
+        research_depth: "balanced",
+        time_horizon_override: null,
+        locale: "en-US",
+      },
+      {
+        callJson,
+        search: async ({ query }) => ({ query, results: createCandidateSources(20) }),
+        now: () => new Date("2026-06-18T12:00:00.000Z"),
+        randomUUID: () => "11111111-1111-4111-8111-111111111111",
+      },
+    );
+
+    for (const request of requests) {
+      expect(JSON.parse(request.user).output_schema, request.agent).toBeTruthy();
+    }
+  });
 });

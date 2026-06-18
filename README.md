@@ -69,3 +69,10 @@ Never commit `.dev.vars`, `.env`, provider keys, Cloudflare API tokens, or app t
 ## Current provider contracts
 
 The implementation was verified on June 18, 2026 against the official MiniMax OpenAI-compatible API and Brave Web Search API. MiniMax uses `MiniMax-M3` at `https://api.minimax.io/v1/chat/completions` with Bearer authentication. Brave custom freshness ranges use `YYYY-MM-DDtoYYYY-MM-DD`.
+
+Official references:
+
+- [MiniMax OpenAI-compatible text API](https://platform.minimax.io/docs/api-reference/text-openai-api)
+- [Brave Web Search API](https://api-dashboard.search.brave.com/app/documentation/web-search/get-started)
+- [Cloudflare Workers rate-limit bindings](https://developers.cloudflare.com/workers/runtime-apis/bindings/rate-limit/)
+- [Cloudflare Worker secrets](https://developers.cloudflare.com/workers/configuration/secrets/)

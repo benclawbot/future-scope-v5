@@ -130,6 +130,7 @@ export function createWorker(dependencies = {}) {
               code: mapped.code,
               stack: error?.stack,
             });
+            mapped.structuredLogged = true;
             throw mapped;
           }
         }
@@ -149,7 +150,7 @@ export function createWorker(dependencies = {}) {
         throw new AppError("E_INPUT_INVALID", "Route not found.", 404, null);
       } catch (error) {
         const mapped = mapError(error);
-        if (mapped.code !== "E_PROXY_AUTH" || url.pathname === "/api/analyze") {
+        if (!mapped.structuredLogged) {
           structuredLog(logger, {
             ts: now().toISOString(),
             level: mapped.status >= 500 ? "error" : "warn",

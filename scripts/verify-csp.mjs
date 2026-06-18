@@ -12,10 +12,15 @@ const policy = extract(
 
 const required = [hash(style), hash(script)];
 const missing = required.filter((value) => !policy.includes(`'${value}'`));
+const scriptDirective =
+  policy
+    .split(";")
+    .map((directive) => directive.trim())
+    .find((directive) => directive.startsWith("script-src ")) ?? "";
 if (missing.length > 0) {
   console.error(`CSP hash mismatch: ${missing.join(", ")}`);
   process.exitCode = 1;
-} else if (policy.includes("'unsafe-inline'") && !policy.includes("style-src")) {
+} else if (scriptDirective.includes("'unsafe-inline'")) {
   console.error("CSP must not permit inline scripts.");
   process.exitCode = 1;
 } else {

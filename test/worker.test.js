@@ -186,4 +186,30 @@ describe("Future Scope Worker", () => {
     expect(response.status).toBe(429);
     expect(await response.json()).toMatchObject({ code: "E_PROXY_RATE_LIMIT" });
   });
+
+  test("emits exactly one structured log for a failed analysis", async () => {
+    pipeline.mockRejectedValueOnce(new Error("pipeline failure"));
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    const response = await worker.fetch(
+      request("/api/analyze", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-App-Token": appToken,
+        },
+        body: JSON.stringify({ prompt: "Will this analysis fail cleanly?" }),
+      }),
+      environment(),
+      {},
+    );
+
+    expect(response.status).toBe(500);
+    expect(log).toHaveBeenCalledTimes(1);
+    expect(JSON.parse(log.mock.calls[0][0])).toMatchObject({
+      route: "/api/analyze",
+      outcome: "error",
+      code: "E_INTERNAL",
+    });
+    log.mockRestore();
+  });
 });
