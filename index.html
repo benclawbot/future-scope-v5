@@ -4,9 +4,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="dark light" />
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'sha256-UvUkONI3CCzNghQnqGsKbPDvnYQZQv0OsACxGIU/3pI='; style-src 'self' 'unsafe-inline' 'sha256-XbIUYU6uNPeiGfr1aVvzfzxCoXj4eWD99KqlfXqikTY='; connect-src 'self' https: http://127.0.0.1:* http://localhost:*; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; worker-src 'none'"
+      content="default-src 'self'; script-src 'sha256-2hKWUqWBB2TdduUCNUwHrsD3YgK9lXkuEfHb83roe+w='; style-src 'self' 'unsafe-inline'; connect-src 'self' https: http://127.0.0.1:* http://localhost:*; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; worker-src 'none'"
     />
     <title>Future•Scope — Live probability intelligence</title>
     <style id="app-styles">
@@ -32,6 +35,9 @@
         --radius: 12px;
         --radius-large: 18px;
         --focus: 0 0 0 3px rgba(56, 189, 248, 0.45);
+        --bg-deep: rgba(7, 12, 25, 0.48);
+        --bg-overlay: rgba(7, 12, 26, 0.36);
+        --bg-elevated: rgba(8, 14, 30, 0.97);
         --transition: 180ms cubic-bezier(0.22, 1, 0.36, 1);
       }
 
@@ -47,6 +53,9 @@
         --muted: #445170;
         --subtle: #66718d;
         --shadow: 0 20px 60px rgba(45, 65, 105, 0.16);
+        --bg-deep: rgba(35, 48, 84, 0.08);
+        --bg-overlay: rgba(35, 48, 84, 0.06);
+        --bg-elevated: rgba(255, 255, 255, 0.99);
       }
 
       * {
@@ -227,7 +236,7 @@
         border: 1px solid var(--border);
         border-radius: var(--radius-small);
         color: var(--text);
-        background: rgba(7, 12, 25, 0.48);
+        background: var(--bg-deep);
         transition:
           border-color var(--transition),
           background var(--transition);
@@ -266,9 +275,9 @@
         min-height: 40px;
         padding: 0 14px;
         border: 1px solid var(--border);
-        border-radius: var(--radius-small);
+        border-radius: 5px;
         color: var(--text);
-        background: rgba(18, 24, 46, 0.72);
+        background: var(--panel);
         transition:
           transform var(--transition),
           border-color var(--transition),
@@ -838,7 +847,7 @@
         padding: 10px;
         border: 1px solid var(--border);
         border-radius: var(--radius-small);
-        background: rgba(8, 14, 28, 0.34);
+        background: var(--bg-overlay);
       }
 
       .event-card-head {
@@ -897,7 +906,7 @@
         padding: 12px;
         border: 1px solid var(--border);
         border-radius: var(--radius-small);
-        background: rgba(8, 14, 28, 0.34);
+        background: var(--bg-overlay);
       }
 
       .source-mix-chart {
@@ -1082,9 +1091,6 @@
 
       .galaxy-stage {
         position: relative;
-        display: grid;
-        grid-template-columns: repeat(12, 1fr);
-        grid-template-rows: repeat(10, minmax(48px, 1fr));
         min-height: 570px;
         border: 1px solid rgba(148, 163, 255, 0.12);
         border-radius: var(--radius);
@@ -1112,26 +1118,25 @@
       }
 
       .outcome-orb {
-        position: relative;
+        position: absolute;
         z-index: 1;
         display: grid;
-        align-self: center;
-        justify-self: center;
         width: var(--orb-size);
-        max-width: 100%;
-        aspect-ratio: 1;
+        height: var(--orb-size);
         place-items: center;
-        padding: 14px;
+        padding: 10px;
+        overflow: hidden;
         border: 1px solid color-mix(in srgb, var(--orb-color) 78%, white 8%);
         border-radius: 50%;
         color: var(--text);
         background:
           radial-gradient(circle at 38% 30%, color-mix(in srgb, var(--orb-color) 34%, transparent), transparent 68%),
-          rgba(8, 14, 31, 0.86);
+          var(--surface);
         box-shadow:
           0 0 28px color-mix(in srgb, var(--orb-color) 34%, transparent),
           inset 0 0 30px rgba(255, 255, 255, 0.025);
         text-align: center;
+        transform: translate(-50%, -50%);
       }
 
       .outcome-orb strong {
@@ -1176,7 +1181,7 @@
         border: 0;
         border-bottom: 1px solid var(--border);
         color: var(--text);
-        background: rgba(7, 12, 26, 0.34);
+        background: var(--bg-overlay);
         text-align: left;
       }
 
@@ -1185,7 +1190,7 @@
       }
 
       .ranked-row:hover {
-        background: rgba(25, 32, 60, 0.62);
+        background: var(--bg-overlay);
       }
 
       .rank-number {
@@ -1287,7 +1292,7 @@
         border-radius: var(--radius);
         background:
           linear-gradient(rgba(56, 189, 248, 0.06), transparent 38%),
-          rgba(4, 9, 21, 0.35);
+          var(--bg-deep);
       }
 
       .tree-root,
@@ -1298,7 +1303,7 @@
         padding: 14px;
         border: 1px solid var(--node-color, var(--blue));
         border-radius: var(--radius-small);
-        background: rgba(9, 16, 31, 0.9);
+        background: var(--surface);
       }
 
       .tree-root {
@@ -1340,7 +1345,7 @@
 
       .tree-port {
         fill: var(--link-color, var(--blue));
-        stroke: rgba(255, 255, 255, 0.72);
+        stroke: var(--surface);
         stroke-width: 1.2;
         vector-effect: non-scaling-stroke;
         filter: drop-shadow(0 0 5px var(--link-color, var(--blue)));
@@ -1372,24 +1377,29 @@
 
       .timeline-axis {
         position: relative;
-        min-height: 220px;
-        padding: 38px 18px 18px;
+        min-height: 360px;
+        padding: 26px 18px;
         border: 1px solid var(--border);
         border-radius: var(--radius);
-        background: rgba(5, 11, 24, 0.32);
+        background: var(--bg-deep);
       }
 
       .timeline-axis::before {
         position: absolute;
-        top: 122px;
+        top: 50%;
         right: 24px;
         left: 24px;
         height: 2px;
         background: linear-gradient(90deg, var(--blue), var(--purple), var(--cyan));
         content: "";
+        transform: translateY(-50%);
       }
 
       .timeline-labels {
+        position: absolute;
+        top: 14px;
+        right: 24px;
+        left: 24px;
         display: flex;
         justify-content: space-between;
         color: var(--muted);
@@ -1398,36 +1408,45 @@
 
       .timeline-events {
         position: absolute;
-        inset: 55px 24px auto;
-        height: 130px;
+        inset: 26px 24px 26px;
+        min-height: 308px;
       }
 
       .timeline-milestone {
         position: absolute;
         top: 0;
-        width: 142px;
+        width: 150px;
         color: var(--text);
         transform: translateX(-50%);
         touch-action: none;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
       }
 
       .timeline-milestone[data-draggable="true"] {
         cursor: ew-resize;
       }
 
+      /* Card sits above the axis (side="up") or below (side="down") so
+         adjacent events can alternate and never overlap. The vertical
+         connector + dot on the axis line share the event's color, and
+         the card's edge accent matches. */
       .timeline-event-card {
-        min-height: 50px;
-        padding: 9px 10px;
+        position: relative;
+        min-height: 60px;
+        width: 100%;
+        padding: 9px 12px 9px 14px;
         border: 1px solid var(--event-color, var(--purple));
+        border-left: 3px solid var(--event-color, var(--purple));
         border-radius: var(--radius-small);
         background:
           linear-gradient(145deg, color-mix(in srgb, var(--event-color) 11%, transparent), transparent),
-          rgba(8, 14, 30, 0.97);
-        box-shadow:
-          0 0 18px color-mix(in srgb, var(--event-color) 22%, transparent),
-          inset 0 0 16px rgba(255, 255, 255, 0.018);
-        font-size: 10px;
-        text-align: center;
+          var(--bg-elevated);
+        box-shadow: 0 0 18px color-mix(in srgb, var(--event-color) 22%, transparent);
+        font-size: 11px;
+        text-align: left;
+        color: var(--text);
       }
 
       .timeline-event-card strong,
@@ -1441,27 +1460,51 @@
         font-variant-numeric: tabular-nums;
       }
 
-      .timeline-pin {
+      /* The vertical line connecting the card to the axis. The dot on the
+         axis is implemented as ::after on the line itself. */
+      .timeline-connector {
         position: absolute;
-        top: 50px;
         left: 50%;
-        width: 1px;
-        height: 18px;
+        width: 1.5px;
         background: var(--event-color, var(--purple));
-        box-shadow: 0 0 8px var(--event-color, var(--purple));
+        box-shadow: 0 0 6px var(--event-color, var(--purple));
+        transform: translateX(-50%);
       }
 
-      .timeline-pin::after {
+      .timeline-connector::after {
         position: absolute;
-        bottom: -4px;
-        left: -4px;
-        width: 9px;
-        height: 9px;
-        border: 2px solid rgba(6, 8, 20, 0.9);
+        left: 50%;
+        width: 10px;
+        height: 10px;
+        border: 2px solid var(--bg-elevated);
         border-radius: 50%;
         background: var(--event-color, var(--purple));
         box-shadow: 0 0 12px var(--event-color, var(--purple));
         content: "";
+        transform: translate(-50%, -50%);
+      }
+
+      /* Card above the axis: card is at top, connector goes from card
+         bottom down to the axis line, dot sits on the axis. */
+      .timeline-milestone[data-side="up"] {
+        flex-direction: column;
+      }
+      .timeline-milestone[data-side="up"] .timeline-connector {
+        top: 100%;
+      }
+      .timeline-milestone[data-side="up"] .timeline-connector::after {
+        top: 100%;
+      }
+
+      /* Card below the axis: connector is above the card, dot at top. */
+      .timeline-milestone[data-side="down"] {
+        flex-direction: column-reverse;
+      }
+      .timeline-milestone[data-side="down"] .timeline-connector {
+        bottom: 100%;
+      }
+      .timeline-milestone[data-side="down"] .timeline-connector::after {
+        bottom: 100%;
       }
 
       .timeline-chart {
@@ -1541,33 +1584,75 @@
         place-items: center;
         border: 1px solid var(--outcome-color);
         border-radius: 50%;
-        background: color-mix(in srgb, var(--outcome-color) 12%, rgba(7, 13, 28, 0.94));
+        background: color-mix(in srgb, var(--outcome-color) 12%, var(--panel-strong));
         box-shadow: 0 0 24px color-mix(in srgb, var(--outcome-color) 28%, transparent);
         transform: translate(-50%, 50%);
         text-align: center;
+        z-index: 2;
       }
 
       .matrix-outcome strong {
-        font-size: clamp(14px, 1.8vw, 26px);
-      }
-
-      .matrix-outcome span {
-        position: absolute;
-        top: 100%;
-        left: 50%;
-        width: 150px;
-        margin-top: 6px;
         color: var(--text);
-        font-size: 10px;
-        transform: translateX(-50%);
+        font-weight: 760;
+        font-variant-numeric: tabular-nums;
       }
 
-      .matrix-outcome:nth-of-type(odd) span {
-        transform: translateX(-72%);
+      .matrix-leader-lines {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 1;
       }
 
-      .matrix-outcome:nth-of-type(even) span {
-        transform: translateX(-28%);
+      .matrix-labels {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 3;
+      }
+
+      .matrix-label {
+        position: absolute;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        max-width: 220px;
+        padding: 6px 10px;
+        border-radius: var(--radius-small);
+        background: var(--panel);
+        border: 1px solid var(--border);
+        color: var(--text);
+        font-size: 12px;
+        line-height: 1.25;
+        transform: translateY(50%);
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        pointer-events: auto;
+        cursor: default;
+      }
+
+      .matrix-label-swatch {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--outcome-color);
+        flex-shrink: 0;
+      }
+
+      .matrix-label-title {
+        font-weight: 600;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .matrix-label-meta {
+        color: var(--muted);
+        font-size: 11px;
+        font-variant-numeric: tabular-nums;
       }
 
       .simulation-summary {
@@ -1582,7 +1667,7 @@
 
       .simulation-summary div {
         padding: 12px;
-        background: rgba(7, 12, 26, 0.36);
+        background: var(--bg-overlay);
         text-align: center;
       }
 
@@ -1614,7 +1699,7 @@
         gap: 12px;
         min-height: 78px;
         padding: 10px 12px;
-        background: rgba(7, 12, 26, 0.34);
+        background: var(--bg-overlay);
       }
 
       .simulation-row + .simulation-row {
@@ -1960,6 +2045,7 @@
           schema_version: 1,
           theme: "dark",
           backend_proxy_url: null,
+          app_token: null,
           ui_density: "comfortable",
           last_tab: "galaxy",
         });
@@ -2023,7 +2109,7 @@
 
         const state = {
           prefs: loadPreferences(),
-          appToken: "",
+          appToken: loadPreferences().app_token ?? "",
           connection: "idle",
           analysis: null,
           lastSuccessfulAt: null,
@@ -2059,6 +2145,12 @@
           elements.cancelSettingsButton.addEventListener("click", closeSettings);
           elements.saveTestButton.addEventListener("click", saveAndTestSettings);
           elements.analyzeButton.addEventListener("click", startAnalysis);
+          elements.prompt.addEventListener("keydown", (event) => {
+            if (event.key === "Enter" && !event.shiftKey && !event.isComposing) {
+              event.preventDefault();
+              if (!elements.analyzeButton.disabled) startAnalysis();
+            }
+          });
           elements.closeErrorButton.addEventListener("click", closeError);
           elements.errorActionButton.addEventListener("click", runErrorAction);
           elements.exportButton.addEventListener("click", exportAnalysis);
@@ -2073,26 +2165,36 @@
 
         function loadPreferences() {
           try {
-            const parsed = JSON.parse(localStorage.getItem(PREFS_KEY));
+            const raw = localStorage.getItem(PREFS_KEY);
+            const parsed = raw ? JSON.parse(raw) : null;
+            const merged = {
+              ...DEFAULT_PREFS,
+              ...(parsed && typeof parsed === "object" ? parsed : {}),
+            };
             if (
-              !parsed ||
-              parsed.schema_version !== 1 ||
-              !["dark", "light", "system"].includes(parsed.theme) ||
-              !["comfortable", "compact"].includes(parsed.ui_density) ||
-              !TAB_IDS.includes(parsed.last_tab) ||
+              !merged ||
+              merged.schema_version !== 1 ||
+              !["dark", "light", "system"].includes(merged.theme) ||
+              !["comfortable", "compact"].includes(merged.ui_density) ||
+              !TAB_IDS.includes(merged.last_tab) ||
               !(
-                parsed.backend_proxy_url === null ||
-                typeof parsed.backend_proxy_url === "string"
+                merged.backend_proxy_url === null ||
+                typeof merged.backend_proxy_url === "string"
+              ) ||
+              !(
+                merged.app_token === null ||
+                typeof merged.app_token === "string"
               )
             ) {
               return { ...DEFAULT_PREFS };
             }
             return {
               schema_version: 1,
-              theme: parsed.theme,
-              backend_proxy_url: parsed.backend_proxy_url,
-              ui_density: parsed.ui_density,
-              last_tab: parsed.last_tab,
+              theme: merged.theme,
+              backend_proxy_url: merged.backend_proxy_url,
+              app_token: merged.app_token,
+              ui_density: merged.ui_density,
+              last_tab: merged.last_tab,
             };
           } catch {
             return { ...DEFAULT_PREFS };
@@ -2146,14 +2248,15 @@
             return;
           }
 
+          state.appToken = elements.appToken.value;
           state.prefs = {
             schema_version: 1,
             theme: elements.themeSelect.value,
             backend_proxy_url: proxyUrl,
+            app_token: state.appToken,
             ui_density: state.prefs.ui_density,
             last_tab: state.activeTab,
           };
-          state.appToken = elements.appToken.value;
           persistPreferences();
           applyPreferences();
           updateConnectionStatus("testing", "Testing connection…");
@@ -2202,12 +2305,17 @@
             return;
           }
           if (!state.prefs.backend_proxy_url || !state.appToken) {
+            const missing = [];
+            if (!state.prefs.backend_proxy_url) missing.push("backend proxy URL");
+            if (!state.appToken) missing.push("app access token");
             showError({
               code: "E_PROXY_OFFLINE",
-              message:
-                "Future•Scope requires a configured secure proxy and app access token.",
+              message: `Future•Scope needs a ${missing.join(" and ")} before analysing. The Settings dialog will open — paste the token and click Save & Test.`,
               action: "open_settings",
             });
+            // Auto-open the settings dialog so the user lands directly on the
+            // field that needs filling.
+            if (typeof openSettings === "function") openSettings();
             return;
           }
 
@@ -2281,33 +2389,46 @@
         }
 
         function activateAnalysisWorkspace() {
-          state.factors = Object.fromEntries(
-            (state.analysis.factors ?? []).map((factor) => [factor.id, factor.value ?? 0.5]),
-          );
-          state.baselineProbabilities = Object.fromEntries(
-            (state.analysis.outcomes ?? []).map((outcome) => [
-              outcome.id,
-              outcome.current_probability,
-            ]),
-          );
-          state.userEvents = [];
-          state.selectedOutcomeId = state.analysis.outcomes?.[0]?.id ?? null;
-          elements.emptyState.classList.add("hidden");
-          document.querySelector(".workspace").classList.remove("is-empty");
-          elements.viewRoot.classList.remove("hidden");
-          elements.leftRail.classList.remove("hidden");
-          elements.rightRail.classList.remove("hidden");
-          elements.metricStrip.classList.remove("hidden");
-          elements.exportButton.classList.remove("hidden");
-          elements.tabs.forEach((tab) => {
-            tab.disabled = false;
-          });
-          updateMetrics();
-          renderFactorControls();
-          renderEventControls();
-          renderEvidencePanel();
-          selectTab(state.activeTab);
-          showToast("Live analysis loaded.");
+          try {
+            state.factors = Object.fromEntries(
+              (state.analysis.factors ?? []).map((factor) => [factor.id, factor.value ?? 0.5]),
+            );
+            state.baselineProbabilities = Object.fromEntries(
+              (state.analysis.outcomes ?? []).map((outcome) => [
+                outcome.id,
+                outcome.current_probability,
+              ]),
+            );
+            state.userEvents = [];
+            state.selectedOutcomeId = state.analysis.outcomes?.[0]?.id ?? null;
+            elements.emptyState.classList.add("hidden");
+            document.querySelector(".workspace").classList.remove("is-empty");
+            elements.viewRoot.classList.remove("hidden");
+            elements.leftRail.classList.remove("hidden");
+            elements.rightRail.classList.remove("hidden");
+            elements.metricStrip.classList.remove("hidden");
+            elements.exportButton.classList.remove("hidden");
+            elements.tabs.forEach((tab) => {
+              tab.disabled = false;
+            });
+            updateMetrics();
+            renderFactorControls();
+            renderEventControls();
+            renderEvidencePanel();
+            selectTab(state.activeTab);
+            showToast("Live analysis loaded.");
+          } catch (error) {
+            // Surface the real error (with line number) instead of letting
+            // an opaque TypeError become a generic E_INTERNAL dialog.
+            console.error("[activateAnalysisWorkspace]", error);
+            showError({
+              code: "E_INTERNAL",
+              message: `Render failed: ${error?.message ?? "unknown"}. See browser console for the stack trace.`,
+              action: null,
+              request_id: null,
+            });
+            throw error;
+          }
         }
 
         function updateMetrics() {
@@ -2371,33 +2492,109 @@
             "Outcome area represents probability; color and labels preserve confidence and direction.",
           );
           const stage = createElement("div", "galaxy-stage");
-          const placements = [
-            [4, 9, 2, 8],
-            [8, 12, 2, 6],
-            [2, 6, 6, 10],
-            [7, 10, 7, 10],
-            [5, 8, 8, 11],
-            [9, 12, 7, 10],
-            [1, 4, 2, 5],
-            [3, 6, 1, 4],
-          ];
 
-          state.analysis.outcomes.forEach((outcome, index) => {
+          // Compute the orbs first so we can run a quick force-based layout
+          // to place them so they never overlap and always stay round.
+          const outcomes = state.analysis.outcomes;
+          const orbs = outcomes.map((outcome, index) => {
+            const probability = displayProbability(outcome);
+            // Bubble diameter scales with probability (capped so the largest
+            // doesn't dwarf the rest). Floored at 92 so even tiny outcomes
+            // can hold their title text.
+            const diameter = Math.max(92, Math.min(220, 90 + probability * 2.6));
+            return {
+              outcome,
+              index,
+              diameter,
+              radius: diameter / 2,
+              // Initial polar placement: bigger outcomes anchor near the
+              // centre, smaller ones orbit. Final positions are refined by
+              // the repulsion pass below.
+              angle: (index / Math.max(outcomes.length, 1)) * Math.PI * 2,
+            };
+          });
+
+          // Layout: place each orb in a Phyllotaxis (sunflower) spiral so
+          // they're already spread across the frame before any force
+          // pass, then run a repulsion-only pass to clear overlaps. No
+          // centre pull — repulsion alone keeps the cluster honest.
+          const W = 1000;
+          const H = 750;
+          const minGap = 26;
+          // Phyllotaxis initial placement: the n-th orb sits at angle
+          // n*137.5° (golden angle) at a radius proportional to sqrt(n).
+          // This spreads orbs evenly across the whole frame instead of
+          // bunching them in the middle.
+          const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+          const maxRadius = Math.min(W, H) * 0.46;
+          orbs.forEach((orb, i) => {
+            // Use a generous radius even for the first orb so it isn't
+            // dead-centre.
+            const t = (i + 1) / Math.max(orbs.length, 1);
+            const r = Math.sqrt(t) * maxRadius;
+            const a = i * goldenAngle;
+            orb.x = W / 2 + Math.cos(a) * r;
+            orb.y = H / 2 + Math.sin(a) * r;
+          });
+          for (let iter = 0; iter < 320; iter += 1) {
+            // Repulsion between every pair of orbs (strong, no soft
+            // centre pull — repulsion alone spreads the cluster).
+            for (let i = 0; i < orbs.length; i += 1) {
+              for (let j = i + 1; j < orbs.length; j += 1) {
+                const dx = orbs[j].x - orbs[i].x;
+                const dy = orbs[j].y - orbs[i].y;
+                const minDist = orbs[i].radius + orbs[j].radius + minGap;
+                const distSq = dx * dx + dy * dy || 0.01;
+                const dist = Math.sqrt(distSq);
+                if (dist < minDist) {
+                  const push = (minDist - dist) * 0.5;
+                  const nx = dx / dist;
+                  const ny = dy / dist;
+                  orbs[i].x -= nx * push;
+                  orbs[i].y -= ny * push;
+                  orbs[j].x += nx * push;
+                  orbs[j].y += ny * push;
+                }
+              }
+            }
+          }
+          // Final clamp into the frame.
+          for (const orb of orbs) {
+            orb.x = Math.max(orb.radius + 8, Math.min(W - orb.radius - 8, orb.x));
+            orb.y = Math.max(orb.radius + 8, Math.min(H - orb.radius - 8, orb.y));
+          }
+
+          orbs.forEach(({ outcome, index, diameter, x, y }) => {
             const probability = displayProbability(outcome);
             const orb = createElement("article", "outcome-orb");
             orb.dataset.outcomeId = outcome.id;
             orb.style.setProperty("--orb-color", outcomeColor(outcome, index));
-            orb.style.setProperty(
-              "--orb-size",
-              `${Math.max(94, Math.min(245, 84 + probability * 3.2))}px`,
+            orb.style.setProperty("--orb-size", `${diameter}px`);
+            orb.style.left = `${(x / W) * 100}%`;
+            orb.style.top = `${(y / H) * 100}%`;
+            // Title font-size scales with both orb size and title length so
+            // long titles shrink to fit and short titles stay readable.
+            const titleLen = outcome.title.length;
+            const titlePx = Math.max(
+              10,
+              Math.min(
+                18,
+                Math.round(diameter * 0.085 - titleLen * 0.45 + 6),
+              ),
             );
-            const placement = placements[index] ?? [3, 7, 3, 7];
-            orb.style.gridColumn = `${placement[0]} / ${placement[1]}`;
-            orb.style.gridRow = `${placement[2]} / ${placement[3]}`;
+            const probPx = Math.max(
+              14,
+              Math.min(
+                30,
+                Math.round(diameter * 0.13),
+              ),
+            );
             const title = createElement("strong", "", outcome.title);
+            title.style.fontSize = `${titlePx}px`;
             const probabilityValue = createElement("span", "", `${probability.toFixed(1)}%`);
             probabilityValue.dataset.probability = "";
             probabilityValue.dataset.probabilityValue = "";
+            probabilityValue.style.fontSize = `${probPx}px`;
             const confidence = createElement(
               "small",
               "",
@@ -2732,17 +2929,43 @@
             ...(state.analysis.events ?? []).map((event) => ({ event, kind: "research" })),
             ...state.userEvents.map((event) => ({ event, kind: "user" })),
           ];
-          timelineEvents.forEach(({ event, kind }, index) => {
-            const milestone = createElement("article", "timeline-milestone");
+          // Compute each event's horizontal position. Events are placed
+          // either above or below the axis line, alternating, so close
+          // events never overlap. The vertical connector from each card
+          // to its dot on the axis is drawn via the .timeline-connector
+          // element (see CSS).
+          const positioned = timelineEvents.map(({ event, kind }, index) => {
             const position =
               kind === "user"
                 ? Math.max(0, Math.min(1, (event.time_decay - 0.2) / 0.8))
                 : eventDatePosition(event.date, start, end, index, timelineEvents.length);
+            return { event, kind, position, index };
+          });
+          // Sort by horizontal position so we can assign up/down to
+          // guarantee adjacent events alternate sides.
+          positioned.sort((a, b) => a.position - b.position);
+          positioned.forEach((item, i) => {
+            item.side = i % 2 === 0 ? "up" : "down";
+          });
+          // Restore original order so events render in their natural order
+          positioned.sort((a, b) => a.index - b.index);
+
+          positioned.forEach(({ event, kind, position, side }, index) => {
+            const milestone = createElement("article", "timeline-milestone");
+            milestone.dataset.timelineSide = side;
+            milestone.dataset.timelineRow = "0";
+            milestone.dataset.kind = kind;
             milestone.style.left = `${position * 100}%`;
-            milestone.style.setProperty(
-              "--event-color",
-              kind === "user" ? "var(--purple)" : "var(--cyan)",
-            );
+            // Vertical anchor: each milestone is vertically centred on the
+            // axis line. The card is rendered above (data-side="up") or
+            // below (data-side="down") and the connector bridges the gap.
+            milestone.style.top = "50%";
+            milestone.style.transform = "translate(-50%, -50%)";
+            const color =
+              kind === "user"
+                ? "var(--purple)"
+                : ["var(--cyan)", "var(--blue)", "var(--green)", "var(--orange)"][index % 4];
+            milestone.style.setProperty("--event-color", color);
             const card = createElement("div", "timeline-event-card");
             const timeCopy =
               kind === "user"
@@ -2755,7 +2978,14 @@
               createElement("strong", "", event.label),
               createElement("span", "timeline-event-meta", timeCopy),
             );
-            milestone.append(card, createElement("span", "timeline-pin"));
+            // Connector: vertical line from card to axis. Height is set
+            // by CSS based on data-side. The ::after pseudo on the
+            // connector is the dot on the axis line.
+            const connector = createElement("span", "timeline-connector");
+            connector.style.height = "84px";
+            milestone.append(card, connector);
+            // Set the side via the data attribute (CSS reads it).
+            milestone.dataset.side = side;
             if (kind === "user") {
               milestone.dataset.timelineUserEvent = event.id;
               milestone.dataset.draggable = "true";
@@ -2879,23 +3109,83 @@
             createElement("span", "matrix-axis-label matrix-axis-label-x", "Impact"),
             createElement("span", "matrix-axis-label matrix-axis-label-y", "Likelihood"),
           );
-          state.analysis.outcomes.forEach((outcome, index) => {
+
+          // Build label rows in a side panel so they never overlap. Each
+          // label is positioned by impact (X) and likelihood (Y) of its
+          // bubble, but vertically staggered inside a fixed track so that
+          // close-together outcomes don't crash into each other.
+          const labelPanel = createElement("div", "matrix-labels");
+          const svgLayer = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+          svgLayer.classList.add("matrix-leader-lines");
+          svgLayer.setAttribute("aria-hidden", "true");
+          matrix.append(svgLayer, labelPanel);
+
+          // First pass: gather sorted, sized data
+          const items = state.analysis.outcomes.map((outcome, index) => {
             const probability = displayProbability(outcome);
+            const x = Math.max(8, Math.min(92, (outcome.impact ?? 0.5) * 100));
+            const y = Math.max(8, Math.min(92, probability));
+            const diameter = Math.max(38, Math.min(72, 36 + probability * outcome.confidence * 0.9));
+            return { outcome, index, probability, x, y, diameter, labelSlot: 0 };
+          });
+
+          // Sort by Y (likelihood) so we can stagger label slots in reading
+          // order — top outcomes get slot 0, the next-nearest-by-Y gets 1,
+          // and so on, capped at 3 columns of label slots to keep the panel
+          // compact.
+          const byY = [...items].sort((a, b) => b.y - a.y);
+          const SLOT_HEIGHT = 56;
+          byY.forEach((item) => {
+            // The label sits in the same vertical pixel row as the bubble,
+            // so we just need to make sure adjacent labels have enough
+            // vertical separation. We compute the label's Y from the bubble's
+            // Y in the stage and bump it to the nearest free slot.
+            item.labelY = item.y;
+          });
+          for (let i = 1; i < byY.length; i += 1) {
+            const prev = byY[i - 1];
+            const cur = byY[i];
+            if (Math.abs(cur.labelY - prev.labelY) < 9) {
+              cur.labelY = prev.labelY - 9;
+            }
+            if (cur.labelY < 6) cur.labelY = 6;
+          }
+
+          // Place bubbles and labels
+          items.forEach((item) => {
+            const { outcome, index, probability, x, y, diameter } = item;
             const bubble = createElement("article", "matrix-outcome");
             bubble.dataset.matrixOutcome = outcome.id;
-            bubble.style.left = `${Math.max(7, Math.min(93, outcome.impact * 100))}%`;
-            bubble.style.bottom = `${Math.max(7, Math.min(93, probability))}%`;
+            bubble.style.left = `${x}%`;
+            bubble.style.bottom = `${y}%`;
             bubble.style.setProperty("--outcome-color", outcomeColor(outcome, index));
-            bubble.style.setProperty(
-              "--matrix-size",
-              `${Math.max(62, 54 + probability * outcome.confidence * 1.8)}px`,
-            );
-            bubble.append(
-              createElement("strong", "", `${probability.toFixed(1)}%`),
-              createElement("span", "", outcome.title),
-            );
+            bubble.style.setProperty("--matrix-size", `${diameter}px`);
+            const prob = createElement("strong", "", `${probability.toFixed(1)}%`);
+            // Inside text shrinks to fit
+            prob.style.fontSize = `${Math.max(11, Math.round(diameter * 0.32))}px`;
+            bubble.append(prob);
             matrix.append(bubble);
+
+            // External label in the side panel: Y mirrors the bubble, X is
+            // derived from the bubble's impact so the layout stays
+            // intuitive without label-on-label collision.
+            const label = createElement("div", "matrix-label");
+            label.style.bottom = `${item.labelY}%`;
+            // Stagger to the right of the bubble by enough pixels to clear
+            // even the largest bubble plus a gap.
+            label.style.left = `calc(${x}% + ${diameter / 2 + 14}px)`;
+            label.style.setProperty("--outcome-color", outcomeColor(outcome, index));
+            const swatch = createElement("span", "matrix-label-swatch");
+            const title = createElement("span", "matrix-label-title", outcome.title);
+            const meta = createElement(
+              "span",
+              "matrix-label-meta",
+              `${probability.toFixed(1)}% · impact ${Math.round((outcome.impact ?? 0.5) * 100)}%`,
+            );
+            label.append(swatch, title, meta);
+            labelPanel.append(label);
           });
+
           body.append(matrix);
           return view;
         }

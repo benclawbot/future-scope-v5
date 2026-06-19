@@ -5,7 +5,7 @@
   "compatibility_date": "2026-06-18",
   "workers_dev": true,
   "limits": {
-    "cpu_ms": 300000
+    "cpu_ms": 900000
   },
   "secrets": {
     "required": [
@@ -37,7 +37,7 @@
     "LOG_LEVEL": "info",
     "APP_VERSION": "5.1.0",
     "ALLOW_DEV_KEY_OVERRIDES": "false",
-    "MINIMAX_MODEL": "MiniMax-M3",
+    "MINIMAX_MODEL": "MiniMax-M2.7",
     "MINIMAX_API_BASE_URL": "https://api.minimax.io/v1/chat/completions"
   },
   "observability": {

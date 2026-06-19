@@ -28,7 +28,7 @@ export async function callMiniMaxJson(request, options = {}) {
     const response = await fetchWithRetry(options.baseUrl ?? DEFAULT_MINIMAX_URL, {
       fetchImpl,
       sleep: options.sleep,
-      timeoutMs: options.timeoutMs ?? 60_000,
+      timeoutMs: options.timeoutMs ?? 600_000,
       retryStatuses: [500, 502, 503, 504],
       requestInit: {
         method: "POST",
@@ -38,7 +38,6 @@ export async function callMiniMaxJson(request, options = {}) {
         },
         body: JSON.stringify({
           model: options.model ?? "MiniMax-M3",
-          thinking: { type: "adaptive" },
           messages,
           temperature: 0.2,
           max_completion_tokens:

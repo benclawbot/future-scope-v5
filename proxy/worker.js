@@ -82,7 +82,7 @@ export function createWorker(dependencies = {}) {
                 now,
                 randomUUID,
               }),
-              input.research_depth === "deep" ? 90_000 : 45_000,
+              input.research_depth === "deep" ? 900_000 : 600_000,
             );
             structuredLog(logger, {
               ts: now().toISOString(),
@@ -132,7 +132,7 @@ export function createWorker(dependencies = {}) {
           const input = validateEventImpactInput(await readJson(request));
           const result = await withDeadline(
             eventImpact(input, providerOptions(request, env)),
-            60_000,
+            180_000,
           );
           return json(result, 200, requestId, origin);
         }
@@ -192,6 +192,7 @@ function providerOptions(request, env) {
     apiKey: minimaxApiKey,
     baseUrl: minimaxBaseUrl,
     model: minimaxModel,
+    timeoutMs: 600_000,
   };
 }
 
