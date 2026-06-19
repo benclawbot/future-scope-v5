@@ -43,48 +43,6 @@ export function validateAnalyzeInput(input) {
   };
 }
 
-export function validateSearchInput(input) {
-  const body = requireRecord(input, "search request");
-  const query = boundedText(body.query, "query", 1, 400);
-  if (query.split(/\s+/).length > 50) {
-    throw new InputError("query must contain at most 50 words");
-  }
-
-  const count = body.count ?? 10;
-  if (!Number.isInteger(count) || count < 1 || count > 10) {
-    throw new InputError("count must be an integer between 1 and 10");
-  }
-
-  const freshness = body.freshness ?? null;
-  if (
-    freshness !== null &&
-    !/^(?:pd|pw|pm|py|\d{4}-\d{2}-\d{2}to\d{4}-\d{2}-\d{2})$/.test(freshness)
-  ) {
-    throw new InputError(
-      "freshness must be pd, pw, pm, py, a YYYY-MM-DDtoYYYY-MM-DD range, or null",
-    );
-  }
-
-  const country = (body.country ?? "US").toUpperCase();
-  if (!/^[A-Z]{2}$/.test(country)) {
-    throw new InputError("country must be a two-letter country code");
-  }
-
-  const searchLanguage = body.search_lang ?? "en";
-  if (typeof searchLanguage !== "string" || !/^[a-z]{2,3}$/.test(searchLanguage)) {
-    throw new InputError("search_lang must be a two or three-letter language code");
-  }
-
-  return {
-    query,
-    count,
-    country,
-    search_lang: searchLanguage,
-    freshness,
-    extra_snippets: body.extra_snippets !== false,
-  };
-}
-
 export function validateEventImpactInput(input) {
   const body = requireRecord(input, "event impact request");
   const eventLabel = boundedText(body.event_label, "event_label", 1, 180);

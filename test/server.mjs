@@ -40,10 +40,11 @@ async function handleApi(request, response, url) {
   if (url.pathname === "/api/health") {
     sendJson(response, 200, {
       ok: true,
-      brave_configured: true,
       minimax_configured: true,
+      research_enabled: true,
+      research_provider: "minimax_native",
       server_time: "2026-06-18T12:00:00.000Z",
-      version: "5.0.0-test",
+      version: "5.1.0-test",
     });
     return;
   }
@@ -137,6 +138,9 @@ function createContractPayload(prompt, requestId) {
       end: "2028-06-18T00:00:00.000Z",
     },
     assumptions: [],
+    research_provider: "minimax_native",
+    research_summary: "MiniMax native research found eight decision-relevant sources.",
+    coverage_gaps: [],
     sources: Array.from({ length: 8 }, (_, index) => ({
       id: `src_${String(index + 1).padStart(3, "0")}`,
       title: `Evidence source ${index + 1}`,
@@ -147,6 +151,7 @@ function createContractPayload(prompt, requestId) {
       extra_snippets: [],
       published_or_discovered_date: "2026-06-01",
       retrieved_at: "2026-06-18T12:00:00.000Z",
+      source_type: ["official", "regulatory", "research", "news"][index % 4],
       quality_score: 0.82 - index * 0.02,
     })),
     evidence_items: Array.from({ length: 12 }, (_, index) => ({

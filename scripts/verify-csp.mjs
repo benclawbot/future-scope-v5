@@ -28,7 +28,8 @@ if (missing.length > 0) {
 }
 
 function hash(value) {
-  return `sha256-${createHash("sha256").update(value, "utf8").digest("base64")}`;
+  const browserNormalized = value.replace(/\r\n?/g, "\n");
+  return `sha256-${createHash("sha256").update(browserNormalized, "utf8").digest("base64")}`;
 }
 
 function extract(value, pattern, label) {

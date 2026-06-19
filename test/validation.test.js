@@ -3,7 +3,6 @@ import {
   FACTOR_IDS,
   validateAnalyzeInput,
   validateEventImpactInput,
-  validateSearchInput,
 } from "../proxy/validation.js";
 import { validateA1, validateA2 } from "../proxy/schemas.js";
 
@@ -27,26 +26,6 @@ describe("validateAnalyzeInput", () => {
   test.each(["", "x".repeat(401)])("rejects invalid prompt length", (prompt) => {
     expect(() => validateAnalyzeInput({ prompt })).toThrowError(/prompt/i);
   });
-});
-
-describe("validateSearchInput", () => {
-  test.each(["pd", "pw", "pm", "py", "2026-01-01to2026-06-18", null])(
-    "accepts documented freshness %s",
-    (freshness) => {
-      expect(validateSearchInput({ query: "forecast evidence", freshness }).freshness).toBe(
-        freshness,
-      );
-    },
-  );
-
-  test.each(["all", "2026-01-01..2026-06-18", "yesterday"])(
-    "rejects unsupported freshness %s",
-    (freshness) => {
-      expect(() => validateSearchInput({ query: "forecast evidence", freshness })).toThrow(
-        /freshness/i,
-      );
-    },
-  );
 });
 
 describe("validateEventImpactInput", () => {

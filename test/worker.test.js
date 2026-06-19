@@ -7,7 +7,6 @@ const appToken = "test-app-token-with-enough-entropy";
 
 function environment(overrides = {}) {
   return {
-    BRAVE_SEARCH_API_KEY: "brave-provider-key",
     MINIMAX_API_KEY: "minimax-provider-key",
     APP_AUTH_TOKEN: appToken,
     ALLOWED_ORIGIN: allowedOrigin,
@@ -64,10 +63,11 @@ describe("Future Scope Worker", () => {
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({
       ok: true,
-      brave_configured: true,
       minimax_configured: true,
+      research_enabled: true,
+      research_provider: "minimax_native",
       server_time: "2026-06-18T12:00:00.000Z",
-      version: "5.0.0",
+      version: "5.1.0",
     });
     expect(response.headers.get("X-Content-Type-Options")).toBe("nosniff");
     expect(response.headers.get("X-Request-Id")).toBe(
@@ -106,6 +106,33 @@ describe("Future Scope Worker", () => {
     expect(response.status).toBe(204);
     expect(response.headers.get("Access-Control-Allow-Origin")).toBe(allowedOrigin);
     expect(response.headers.get("Access-Control-Allow-Origin")).not.toBe("*");
+    expect(response.headers.get("Access-Control-Allow-Headers")).not.toContain(
+      "X-Dev-Brave-Key",
+    );
+    expect(response.headers.get("Access-Control-Allow-Headers")).toContain(
+      "X-Dev-Minimax-Key",
+    );
+  });
+
+  test("does not expose the retired direct search route", async () => {
+    const response = await worker.fetch(
+      request("/api/brave/search", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-App-Token": appToken,
+        },
+        body: JSON.stringify({ query: "forecast evidence" }),
+      }),
+      environment(),
+      {},
+    );
+
+    expect(response.status).toBe(404);
+    expect(await response.json()).toMatchObject({
+      code: "E_INPUT_INVALID",
+      message: "Route not found.",
+    });
   });
 
   test("runs an authenticated analysis with rate limits and structured logging", async () => {
@@ -132,6 +159,11 @@ describe("Future Scope Worker", () => {
 
     expect(response.status).toBe(200);
     expect(pipeline).toHaveBeenCalledOnce();
+    expect(pipeline.mock.calls[0][1]).toMatchObject({
+      minimaxApiKey: "minimax-provider-key",
+      minimaxModel: "MiniMax-M3",
+    });
+    expect(pipeline.mock.calls[0][1]).not.toHaveProperty("braveApiKey");
     expect(env.PER_IP_RATE_LIMITER.limit).toHaveBeenCalledOnce();
     expect(env.GLOBAL_RATE_LIMITER.limit).toHaveBeenCalledOnce();
     expect(JSON.parse(log.mock.calls.at(-1)[0])).toMatchObject({

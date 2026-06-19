@@ -6,7 +6,7 @@
     <meta name="color-scheme" content="dark light" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'sha256-ZyMsWIcQMKTq58nurQ0AqvRtUoNE6rd8NfW689ABT5Y='; style-src 'self' 'unsafe-inline' 'sha256-sNsXKqLF+yF+J0VCqhPgkdHVs7ZnXR4tfdwIaYNViU8='; connect-src 'self' https: http://127.0.0.1:* http://localhost:*; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; worker-src 'none'"
+      content="default-src 'self'; script-src 'sha256-KUeT+GlOxsCrv2+RLAG5fYaW2tYlfGh0crXV+UtrLDU='; style-src 'self' 'unsafe-inline' 'sha256-sNsXKqLF+yF+J0VCqhPgkdHVs7ZnXR4tfdwIaYNViU8='; connect-src 'self' https: http://127.0.0.1:* http://localhost:*; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; worker-src 'none'"
     />
     <title>Future•Scope — Live probability intelligence</title>
     <style id="app-styles">
@@ -1648,15 +1648,6 @@
               overrides.
             </p>
             <div class="setting-group">
-              <label for="dev-brave-key">Brave key override</label>
-              <input
-                class="field"
-                id="dev-brave-key"
-                type="password"
-                autocomplete="off"
-              />
-            </div>
-            <div class="setting-group">
               <label for="dev-minimax-key">MiniMax key override</label>
               <input
                 class="field"
@@ -1740,7 +1731,6 @@
           densitySelect: document.querySelector("#density-select"),
           proxyUrl: document.querySelector("#proxy-url"),
           appToken: document.querySelector("#app-token"),
-          devBraveKey: document.querySelector("#dev-brave-key"),
           devMinimaxKey: document.querySelector("#dev-minimax-key"),
           telemetryOptIn: document.querySelector("#telemetry-opt-in"),
           connectionStatus: document.querySelector("#connection-status"),
@@ -1771,7 +1761,6 @@
         const state = {
           prefs: loadPreferences(),
           appToken: "",
-          devBraveKey: "",
           devMinimaxKey: "",
           telemetryOptIn: false,
           connection: "idle",
@@ -1872,7 +1861,6 @@
           elements.densitySelect.value = state.prefs.ui_density;
           elements.proxyUrl.value = state.prefs.backend_proxy_url ?? "";
           elements.appToken.value = state.appToken;
-          elements.devBraveKey.value = state.devBraveKey;
           elements.devMinimaxKey.value = state.devMinimaxKey;
           elements.telemetryOptIn.checked = state.telemetryOptIn;
         }
@@ -1907,7 +1895,6 @@
             last_tab: state.activeTab,
           };
           state.appToken = elements.appToken.value;
-          state.devBraveKey = elements.devBraveKey.value;
           state.devMinimaxKey = elements.devMinimaxKey.value;
           state.telemetryOptIn = elements.telemetryOptIn.checked;
           persistPreferences();
@@ -1924,10 +1911,15 @@
             if (!response.ok || !body.ok) {
               throw new Error(body.message || "The proxy health check failed.");
             }
-            const providersReady = body.brave_configured && body.minimax_configured;
+            const providersReady =
+              body.minimax_configured &&
+              body.research_enabled &&
+              body.research_provider === "minimax_native";
             updateConnectionStatus(
               providersReady ? "connected" : "error",
-              providersReady ? `Connected · proxy ${body.version}` : "Connected, but provider keys are missing",
+              providersReady
+                ? `Connected · proxy ${body.version} · Research provider: MiniMax native`
+                : "Connected, but MiniMax research is not configured",
             );
           } catch (error) {
             updateConnectionStatus("error", error.message || "Proxy unavailable");
@@ -1998,7 +1990,6 @@
                 "Content-Type": "application/json",
                 "X-App-Token": state.appToken,
                 "X-Request-Id": requestId,
-                ...(state.devBraveKey ? { "X-Dev-Brave-Key": state.devBraveKey } : {}),
                 ...(state.devMinimaxKey
                   ? { "X-Dev-Minimax-Key": state.devMinimaxKey }
                   : {}),

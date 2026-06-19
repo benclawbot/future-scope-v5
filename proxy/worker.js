@@ -1,6 +1,6 @@
 import { generateEventImpact, runAnalysisPipeline } from "./agents.js";
 import { AppError, mapError } from "./errors.js";
-import { callMiniMaxJson, searchBrave } from "./providers.js";
+import { callMiniMaxJson } from "./providers.js";
 import {
   assertAllowedOrigin,
   enforceRateLimits,
@@ -8,18 +8,13 @@ import {
   requireAppToken,
   responseHeaders,
 } from "./security.js";
-import {
-  validateAnalyzeInput,
-  validateEventImpactInput,
-  validateSearchInput,
-} from "./validation.js";
+import { validateAnalyzeInput, validateEventImpactInput } from "./validation.js";
 
-const VERSION = "5.0.0";
+const VERSION = "5.1.0";
 
 export function createWorker(dependencies = {}) {
   const analyze = dependencies.runAnalysisPipeline ?? runAnalysisPipeline;
   const eventImpact = dependencies.generateEventImpact ?? generateEventImpact;
-  const braveSearch = dependencies.searchBrave ?? searchBrave;
   const minimaxJson = dependencies.callMiniMaxJson ?? callMiniMaxJson;
   const randomUUID = dependencies.randomUUID ?? (() => crypto.randomUUID());
   const now = dependencies.now ?? (() => new Date());
@@ -44,8 +39,9 @@ export function createWorker(dependencies = {}) {
           return json(
             {
               ok: true,
-              brave_configured: Boolean(env.BRAVE_SEARCH_API_KEY),
               minimax_configured: Boolean(env.MINIMAX_API_KEY),
+              research_enabled: true,
+              research_provider: "minimax_native",
               server_time: now().toISOString(),
               version: env.APP_VERSION ?? VERSION,
             },
@@ -57,12 +53,6 @@ export function createWorker(dependencies = {}) {
 
         requireAppToken(request, env);
         ipHash = await enforceRateLimits(request, env);
-
-        if (url.pathname === "/api/brave/search" && request.method === "POST") {
-          const input = validateSearchInput(await readJson(request));
-          const result = await braveSearch(input, providerOptions(request, env, "brave"));
-          return json(result, 200, requestId, origin);
-        }
 
         if (url.pathname === "/api/minimax/json" && request.method === "POST") {
           const body = await readJson(request);
@@ -76,7 +66,7 @@ export function createWorker(dependencies = {}) {
               user: typeof body.user === "string" ? body.user.slice(0, 20_000) : "",
               validate: (value) => value,
             },
-            providerOptions(request, env, "minimax"),
+            providerOptions(request, env),
           );
           return json(result, 200, requestId, origin);
         }
@@ -87,7 +77,7 @@ export function createWorker(dependencies = {}) {
           try {
             const payload = await withDeadline(
               analyze(input, {
-                ...providerOptions(request, env, "both"),
+                ...providerOptions(request, env),
                 requestId,
                 now,
                 randomUUID,
@@ -141,7 +131,7 @@ export function createWorker(dependencies = {}) {
         ) {
           const input = validateEventImpactInput(await readJson(request));
           const result = await withDeadline(
-            eventImpact(input, providerOptions(request, env, "minimax")),
+            eventImpact(input, providerOptions(request, env)),
             60_000,
           );
           return json(result, 200, requestId, origin);
@@ -181,32 +171,27 @@ export function createWorker(dependencies = {}) {
 const worker = createWorker();
 export default worker;
 
-function providerOptions(request, env, provider) {
+function providerOptions(request, env) {
   const localOrigin = /^https?:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?$/.test(
     request.headers.get("Origin") ?? "",
   );
   const allowDevelopmentOverrides =
     env.ALLOW_DEV_KEY_OVERRIDES === "true" && localOrigin;
-  const braveApiKey =
-    allowDevelopmentOverrides && request.headers.get("X-Dev-Brave-Key")
-      ? request.headers.get("X-Dev-Brave-Key")
-      : env.BRAVE_SEARCH_API_KEY;
   const minimaxApiKey =
     allowDevelopmentOverrides && request.headers.get("X-Dev-Minimax-Key")
       ? request.headers.get("X-Dev-Minimax-Key")
       : env.MINIMAX_API_KEY;
 
+  const minimaxBaseUrl = env.MINIMAX_API_BASE_URL;
+  const minimaxModel = env.MINIMAX_MODEL ?? "MiniMax-M3";
+
   return {
-    ...(provider !== "minimax" ? { braveApiKey, apiKey: braveApiKey } : {}),
-    ...(provider !== "brave" ? { minimaxApiKey, apiKey: minimaxApiKey } : {}),
-    braveBaseUrl: env.BRAVE_API_BASE_URL,
-    minimaxBaseUrl: env.MINIMAX_API_BASE_URL,
-    baseUrl:
-      provider === "brave"
-        ? env.BRAVE_API_BASE_URL
-        : provider === "minimax"
-          ? env.MINIMAX_API_BASE_URL
-          : undefined,
+    minimaxApiKey,
+    minimaxBaseUrl,
+    minimaxModel,
+    apiKey: minimaxApiKey,
+    baseUrl: minimaxBaseUrl,
+    model: minimaxModel,
   };
 }
 

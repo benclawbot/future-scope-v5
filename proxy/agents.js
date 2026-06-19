@@ -170,6 +170,7 @@ export async function runAnalysisPipeline(input, options = {}) {
       callMiniMaxJson(request, {
         apiKey: options.minimaxApiKey,
         baseUrl: options.minimaxBaseUrl,
+        model: options.minimaxModel,
         fetchImpl: options.fetchImpl,
         sleep: options.sleep,
       }));
@@ -179,6 +180,7 @@ export async function runAnalysisPipeline(input, options = {}) {
       callMiniMaxResearchJson(request, {
         apiKey: options.minimaxApiKey,
         baseUrl: options.minimaxBaseUrl,
+        model: options.minimaxModel,
         fetchImpl: options.fetchImpl,
         sleep: options.sleep,
       }));
@@ -497,6 +499,7 @@ export async function generateEventImpact(input, options = {}) {
       callMiniMaxJson(request, {
         apiKey: options.minimaxApiKey,
         baseUrl: options.minimaxBaseUrl,
+        model: options.minimaxModel,
         fetchImpl: options.fetchImpl,
         sleep: options.sleep,
       }));

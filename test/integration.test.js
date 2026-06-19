@@ -6,34 +6,11 @@ import { agentFixtures } from "./fixtures/pipeline.js";
 describe("complete Worker analysis integration", () => {
   let server;
   let baseUrl;
-  let braveRequestCount = 0;
 
   beforeAll(async () => {
     server = createServer(async (request, response) => {
       const url = new URL(request.url, `http://${request.headers.host}`);
       response.setHeader("Content-Type", "application/json");
-
-      if (url.pathname === "/brave") {
-        const queryIndex = braveRequestCount;
-        braveRequestCount += 1;
-        response.end(
-          JSON.stringify({
-            web: {
-              results: Array.from({ length: 4 }, (_, index) => {
-                const sourceIndex = queryIndex * 4 + index + 1;
-                return {
-                  title: `Contract source ${sourceIndex}`,
-                  url: `https://contract-source-${sourceIndex}.example/report`,
-                  description: `Evidence description ${sourceIndex}`,
-                  extra_snippets: [`Additional evidence ${sourceIndex}`],
-                  age: "June 1, 2026",
-                };
-              }),
-            },
-          }),
-        );
-        return;
-      }
 
       if (url.pathname === "/minimax") {
         const body = await readJson(request);
@@ -69,16 +46,14 @@ describe("complete Worker analysis integration", () => {
   test("returns a validated payload through the public analyze route", async () => {
     const log = vi.spyOn(console, "log").mockImplementation(() => {});
     const env = {
-      BRAVE_SEARCH_API_KEY: "contract-brave-key",
       MINIMAX_API_KEY: "contract-minimax-key",
       APP_AUTH_TOKEN: "contract-app-token",
       IP_HASH_PEPPER: "contract-ip-pepper",
       ALLOWED_ORIGIN: "https://app.example.test",
-      BRAVE_API_BASE_URL: `${baseUrl}/brave`,
       MINIMAX_API_BASE_URL: `${baseUrl}/minimax`,
       PER_IP_RATE_LIMITER: { limit: async () => ({ success: true }) },
       GLOBAL_RATE_LIMITER: { limit: async () => ({ success: true }) },
-      APP_VERSION: "5.0.0-test",
+      APP_VERSION: "5.1.0-test",
     };
     const response = await worker.fetch(
       new Request("https://proxy.example.test/api/analyze", {
@@ -104,6 +79,7 @@ describe("complete Worker analysis integration", () => {
 
     expect(response.status).toBe(200);
     expect(payload.request_id).toBe("33333333-3333-4333-8333-333333333333");
+    expect(payload.research_provider).toBe("minimax_native");
     expect(payload.sources.length).toBeGreaterThanOrEqual(8);
     expect(payload.evidence_items).toHaveLength(12);
     expect(payload.outcomes).toHaveLength(4);

@@ -1,7 +1,5 @@
-import { validateSearchInput } from "./validation.js";
 import { SOURCE_TYPES } from "./schemas.js";
 
-const DEFAULT_BRAVE_URL = "https://api.search.brave.com/res/v1/web/search";
 const DEFAULT_MINIMAX_URL = "https://api.minimax.io/v1/chat/completions";
 const TRACKING_PARAMETERS = new Set([
   "fbclid",
@@ -12,65 +10,6 @@ const TRACKING_PARAMETERS = new Set([
   "ref",
   "ref_src",
 ]);
-
-export async function searchBrave(input, options = {}) {
-  const request = validateSearchInput(input);
-  const apiKey = requireSecret(options.apiKey, "BRAVE_SEARCH_API_KEY");
-  const endpoint = new URL(options.baseUrl ?? DEFAULT_BRAVE_URL);
-  endpoint.searchParams.set("q", request.query);
-  endpoint.searchParams.set("count", String(request.count));
-  endpoint.searchParams.set("country", request.country);
-  endpoint.searchParams.set("search_lang", request.search_lang);
-  endpoint.searchParams.set("extra_snippets", String(request.extra_snippets));
-  endpoint.searchParams.set("text_decorations", "false");
-  if (request.freshness) endpoint.searchParams.set("freshness", request.freshness);
-
-  const response = await fetchWithRetry(endpoint.toString(), {
-    fetchImpl: options.fetchImpl,
-    sleep: options.sleep,
-    timeoutMs: options.timeoutMs ?? 10_000,
-    retryStatuses: [500, 502, 503, 504],
-    requestInit: {
-      headers: {
-        Accept: "application/json",
-        "Accept-Encoding": "gzip",
-        "X-Subscription-Token": apiKey,
-      },
-    },
-  });
-
-  if (!response.ok) {
-    const error = new Error(`Brave Search returned HTTP ${response.status}`);
-    error.provider = "brave";
-    error.status = response.status;
-    throw error;
-  }
-
-  const body = await response.json();
-  const now = options.now?.() ?? new Date();
-  const results = (body.web?.results ?? []).slice(0, request.count).map((result, index) => {
-    const canonicalUrl = canonicalizeUrl(result.url);
-    const parsedDate = parseDate(result.page_age ?? result.age ?? result.published_time);
-    return {
-      id: `src_${String(index + 1).padStart(3, "0")}`,
-      title: cleanText(result.title),
-      url: canonicalUrl,
-      canonical_url: canonicalUrl,
-      domain: new URL(canonicalUrl).hostname,
-      description: cleanText(result.description),
-      extra_snippets: Array.isArray(result.extra_snippets)
-        ? result.extra_snippets.map(cleanText).filter(Boolean).slice(0, 5)
-        : [],
-      published_or_discovered_date: parsedDate,
-      retrieved_at: now.toISOString(),
-    };
-  });
-
-  return {
-    query: request.query,
-    results,
-  };
-}
 
 export async function callMiniMaxJson(request, options = {}) {
   const apiKey = requireSecret(options.apiKey, "MINIMAX_API_KEY");
