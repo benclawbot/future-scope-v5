@@ -3,7 +3,9 @@ import { expect, test } from "@playwright/test";
 test("starts empty and keeps analysis views unavailable", async ({ page }) => {
   await page.goto("/");
 
-  await expect(page.getByRole("heading", { name: "Future•Scope" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "FUTURE•SCOPE" })).toBeVisible();
+  await expect(page.locator(".brand-orb")).toBeVisible();
+  await expect(page.locator(".brand-ring")).toHaveCount(2);
   await expect(
     page.getByText("Enter a forecast question and connect the live research backend."),
   ).toBeVisible();

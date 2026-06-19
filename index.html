@@ -6,7 +6,7 @@
     <meta name="color-scheme" content="dark light" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'sha256-KUeT+GlOxsCrv2+RLAG5fYaW2tYlfGh0crXV+UtrLDU='; style-src 'self' 'unsafe-inline' 'sha256-sNsXKqLF+yF+J0VCqhPgkdHVs7ZnXR4tfdwIaYNViU8='; connect-src 'self' https: http://127.0.0.1:* http://localhost:*; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; worker-src 'none'"
+      content="default-src 'self'; script-src 'sha256-z0NCA/96+pfHYsy+e6hvHkJF5WpRhg7BLxnK6id+H3A='; style-src 'self' 'unsafe-inline' 'sha256-D7rQn0zYeGXxFvMNmihAaVdWrZoWz6nHXX0OwL+IH2o='; connect-src 'self' https: http://127.0.0.1:* http://localhost:*; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; worker-src 'none'"
     />
     <title>Future•Scope — Live probability intelligence</title>
     <style id="app-styles">
@@ -134,27 +134,68 @@
         min-width: 0;
       }
 
-      .brand-mark {
-        display: grid;
-        width: 36px;
-        height: 36px;
-        place-items: center;
-        border: 1px solid rgba(139, 92, 246, 0.7);
-        border-radius: 50%;
-        color: #d8ccff;
+      .brand-orb {
+        position: relative;
+        width: 44px;
+        height: 44px;
+        flex: 0 0 44px;
+        overflow: hidden;
+        border: 1px solid rgba(148, 163, 255, 0.35);
+        border-radius: 16px;
         background:
-          radial-gradient(circle, rgba(139, 92, 246, 0.48) 0 2px, transparent 3px),
-          conic-gradient(
-            from 45deg,
-            transparent,
-            rgba(56, 189, 248, 0.45),
-            transparent,
-            rgba(139, 92, 246, 0.55),
-            transparent
-          );
-        font-size: 11px;
-        font-weight: 800;
-        letter-spacing: -0.04em;
+          radial-gradient(circle at 50% 50%, rgba(245, 247, 255, 0.95) 0 2px, transparent 3px),
+          radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.95) 0 7px, transparent 8px),
+          radial-gradient(circle at 35% 25%, rgba(34, 211, 238, 0.38), transparent 18px),
+          linear-gradient(145deg, rgba(139, 92, 246, 0.28), rgba(56, 189, 248, 0.12));
+        box-shadow:
+          0 0 24px rgba(139, 92, 246, 0.45),
+          inset 0 0 18px rgba(34, 211, 238, 0.14);
+      }
+
+      .brand-ring {
+        position: absolute;
+        inset: 9px 4px;
+        border: 1px solid rgba(34, 211, 238, 0.55);
+        border-radius: 999px;
+        box-shadow: 0 0 16px rgba(34, 211, 238, 0.32);
+        transform: rotate(-28deg);
+      }
+
+      .brand-ring-b {
+        inset: 12px 2px;
+        border-color: rgba(139, 92, 246, 0.58);
+        transform: rotate(28deg);
+      }
+
+      .brand-core {
+        position: absolute;
+        inset: 17px;
+        border-radius: 999px;
+        background: #f5f7ff;
+        box-shadow:
+          0 0 12px rgba(245, 247, 255, 0.9),
+          0 0 22px rgba(139, 92, 246, 0.55);
+      }
+
+      .brand-spark {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        border-radius: 999px;
+        background: var(--cyan);
+        box-shadow: 0 0 10px var(--cyan);
+      }
+
+      .brand-spark-a {
+        top: 10px;
+        right: 10px;
+      }
+
+      .brand-spark-b {
+        bottom: 9px;
+        left: 9px;
+        background: var(--purple);
+        box-shadow: 0 0 10px var(--purple);
       }
 
       .brand h1 {
@@ -1458,9 +1499,15 @@
     <div class="app-shell">
       <header class="app-header">
         <div class="brand">
-          <div class="brand-mark" aria-hidden="true">F•S</div>
+          <div class="brand-orb" aria-hidden="true">
+            <span class="brand-core"></span>
+            <span class="brand-ring brand-ring-a"></span>
+            <span class="brand-ring brand-ring-b"></span>
+            <span class="brand-spark brand-spark-a"></span>
+            <span class="brand-spark brand-spark-b"></span>
+          </div>
           <div>
-            <h1>Future•Scope</h1>
+            <h1>FUTURE•SCOPE</h1>
             <p>Live probability intelligence</p>
           </div>
         </div>
@@ -1590,14 +1637,6 @@
         </div>
 
         <div class="setting-group">
-          <label for="density-select">Interface density</label>
-          <select class="select-field" id="density-select" name="density">
-            <option value="comfortable">Comfortable</option>
-            <option value="compact">Compact</option>
-          </select>
-        </div>
-
-        <div class="setting-group">
           <label for="proxy-url">Backend proxy URL</label>
           <input
             class="field"
@@ -1639,32 +1678,6 @@
           <span id="connection-status-text">Not configured</span>
         </div>
 
-        <details>
-          <summary>Advanced development options</summary>
-          <div class="advanced-content">
-            <p class="warning-note">
-              Development-only provider credentials are unsafe in a browser. They are held
-              only for this tab and work only when the proxy explicitly permits local
-              overrides.
-            </p>
-            <div class="setting-group">
-              <label for="dev-minimax-key">MiniMax key override</label>
-              <input
-                class="field"
-                id="dev-minimax-key"
-                type="password"
-                autocomplete="off"
-              />
-            </div>
-            <label class="checkbox-row">
-              <input id="telemetry-opt-in" type="checkbox" />
-              <span>
-                Allow anonymous operational telemetry. Off by default; no third-party
-                trackers are loaded.
-              </span>
-            </label>
-          </div>
-        </details>
       </div>
       <div class="dialog-footer">
         <button class="button" id="cancel-settings-button" type="button">Cancel</button>
@@ -1728,11 +1741,8 @@
           exportButton: document.querySelector("#export-button"),
           settingsDialog: document.querySelector("#settings-dialog"),
           themeSelect: document.querySelector("#theme-select"),
-          densitySelect: document.querySelector("#density-select"),
           proxyUrl: document.querySelector("#proxy-url"),
           appToken: document.querySelector("#app-token"),
-          devMinimaxKey: document.querySelector("#dev-minimax-key"),
-          telemetryOptIn: document.querySelector("#telemetry-opt-in"),
           connectionStatus: document.querySelector("#connection-status"),
           connectionStatusText: document.querySelector("#connection-status-text"),
           saveTestButton: document.querySelector("#save-test-button"),
@@ -1761,8 +1771,6 @@
         const state = {
           prefs: loadPreferences(),
           appToken: "",
-          devMinimaxKey: "",
-          telemetryOptIn: false,
           connection: "idle",
           analysis: null,
           lastSuccessfulAt: null,
@@ -1858,11 +1866,8 @@
 
         function updateSettingsFields() {
           elements.themeSelect.value = state.prefs.theme;
-          elements.densitySelect.value = state.prefs.ui_density;
           elements.proxyUrl.value = state.prefs.backend_proxy_url ?? "";
           elements.appToken.value = state.appToken;
-          elements.devMinimaxKey.value = state.devMinimaxKey;
-          elements.telemetryOptIn.checked = state.telemetryOptIn;
         }
 
         function openSettings() {
@@ -1891,12 +1896,10 @@
             schema_version: 1,
             theme: elements.themeSelect.value,
             backend_proxy_url: proxyUrl,
-            ui_density: elements.densitySelect.value,
+            ui_density: state.prefs.ui_density,
             last_tab: state.activeTab,
           };
           state.appToken = elements.appToken.value;
-          state.devMinimaxKey = elements.devMinimaxKey.value;
-          state.telemetryOptIn = elements.telemetryOptIn.checked;
           persistPreferences();
           applyPreferences();
           updateConnectionStatus("testing", "Testing connection…");
@@ -1990,9 +1993,6 @@
                 "Content-Type": "application/json",
                 "X-App-Token": state.appToken,
                 "X-Request-Id": requestId,
-                ...(state.devMinimaxKey
-                  ? { "X-Dev-Minimax-Key": state.devMinimaxKey }
-                  : {}),
               },
               body: options.body ? JSON.stringify(options.body) : undefined,
               cache: "no-store",
