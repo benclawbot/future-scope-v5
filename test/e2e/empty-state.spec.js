@@ -12,6 +12,7 @@ test("starts empty and keeps analysis views unavailable", async ({ page }) => {
   await expect(page.getByRole("tab", { name: "Galaxy" })).toBeDisabled();
   await expect(page.getByRole("tab", { name: "Simulation" })).toBeDisabled();
   await expect(page.locator("[data-outcome-id]")).toHaveCount(0);
+  await expect(page.locator(".source-mix-card")).toHaveCount(0);
 });
 
 test("validates prompt length before making a request", async ({ page }) => {

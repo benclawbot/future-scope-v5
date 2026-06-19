@@ -22,6 +22,27 @@ test("renders all six live analysis views", async ({ page }) => {
 
   await expect(page.locator("[data-outcome-id]")).toHaveCount(4);
   await expect(page.getByText("8", { exact: true }).first()).toBeVisible();
+  await expect(page.locator(".source-mix-card")).toBeVisible();
+  await expect(page.getByRole("img", { name: "Source mix: 8 sources" })).toBeVisible();
+  await expect(page.locator(".source-mix-segment")).toHaveCount(4);
+
+  const factorColors = await page.locator("[data-factor-id]").evaluateAll((rows) =>
+    Object.fromEntries(
+      rows.map((row) => [row.dataset.factorId, row.style.getPropertyValue("--factor-color")]),
+    ),
+  );
+  expect(factorColors).toEqual({
+    market_momentum: "#8b5cf6",
+    execution_quality: "#38bdf8",
+    competitive_pressure: "#fb7185",
+    regulatory_pressure: "#f59e0b",
+    resource_availability: "#34d399",
+    technology_readiness: "#22d3ee",
+  });
+  await expect(page.getByLabel("Market Momentum")).toHaveCSS(
+    "background-image",
+    /linear-gradient/,
+  );
 
   await page.getByRole("tab", { name: "Ranked" }).click();
   await expect(page.getByRole("heading", { name: "Ranked outcomes" })).toBeVisible();

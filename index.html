@@ -6,7 +6,7 @@
     <meta name="color-scheme" content="dark light" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'sha256-z0NCA/96+pfHYsy+e6hvHkJF5WpRhg7BLxnK6id+H3A='; style-src 'self' 'unsafe-inline' 'sha256-D7rQn0zYeGXxFvMNmihAaVdWrZoWz6nHXX0OwL+IH2o='; connect-src 'self' https: http://127.0.0.1:* http://localhost:*; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; worker-src 'none'"
+      content="default-src 'self'; script-src 'sha256-vrVFMWcPYTJ52KLCNRX5a3oI8NDHMnTi2gFhtKU34Y0='; style-src 'self' 'unsafe-inline' 'sha256-INrJbbEdUXAMWCKgDFVlIIwUW6b07+U4OKsmRnVcTVg='; connect-src 'self' https: http://127.0.0.1:* http://localhost:*; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; worker-src 'none'"
     />
     <title>Future•Scope — Live probability intelligence</title>
     <style id="app-styles">
@@ -768,22 +768,61 @@
       }
 
       .factor-control label {
+        display: flex;
+        align-items: center;
+        gap: 7px;
         color: var(--muted);
         font-size: 12px;
       }
 
+      .factor-control label::before {
+        width: 7px;
+        height: 7px;
+        flex: 0 0 7px;
+        border-radius: 50%;
+        background: var(--factor-color);
+        box-shadow: 0 0 10px color-mix(in srgb, var(--factor-color) 70%, transparent);
+        content: "";
+      }
+
       .factor-control output {
-        color: var(--text);
+        color: var(--factor-color);
         font-size: 12px;
+        font-weight: 700;
         font-variant-numeric: tabular-nums;
       }
 
       .factor-control input[type="range"] {
+        appearance: none;
         grid-column: 1 / -1;
         width: 100%;
         height: 5px;
         margin: 3px 0;
-        accent-color: var(--purple);
+        border-radius: 999px;
+        background: linear-gradient(
+          90deg,
+          var(--factor-color) 0 var(--factor-value),
+          rgba(148, 163, 184, 0.18) var(--factor-value) 100%
+        );
+      }
+
+      .factor-control input[type="range"]::-webkit-slider-thumb {
+        width: 15px;
+        height: 15px;
+        appearance: none;
+        border: 2px solid var(--surface);
+        border-radius: 50%;
+        background: var(--factor-color);
+        box-shadow: 0 0 12px color-mix(in srgb, var(--factor-color) 65%, transparent);
+      }
+
+      .factor-control input[type="range"]::-moz-range-thumb {
+        width: 13px;
+        height: 13px;
+        border: 2px solid var(--surface);
+        border-radius: 50%;
+        background: var(--factor-color);
+        box-shadow: 0 0 12px color-mix(in srgb, var(--factor-color) 65%, transparent);
       }
 
       .event-entry {
@@ -847,6 +886,75 @@
       .evidence-tab[aria-selected="true"] {
         color: var(--text);
         background: rgba(139, 92, 246, 0.22);
+      }
+
+      .source-mix-card {
+        display: grid;
+        grid-template-columns: 104px minmax(0, 1fr);
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 16px;
+        padding: 12px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-small);
+        background: rgba(8, 14, 28, 0.34);
+      }
+
+      .source-mix-chart {
+        width: 104px;
+        height: 104px;
+        overflow: visible;
+      }
+
+      .source-mix-track {
+        fill: none;
+        stroke: rgba(148, 163, 184, 0.14);
+        stroke-width: 12;
+      }
+
+      .source-mix-segment {
+        fill: none;
+        stroke-width: 12;
+        transition: stroke-dasharray var(--transition);
+      }
+
+      .source-mix-total {
+        fill: var(--text);
+        font-size: 18px;
+        font-weight: 760;
+        text-anchor: middle;
+      }
+
+      .source-mix-caption {
+        fill: var(--muted);
+        font-size: 8px;
+        text-anchor: middle;
+        text-transform: uppercase;
+      }
+
+      .source-mix-legend {
+        display: grid;
+        gap: 6px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .source-mix-legend li {
+        display: grid;
+        grid-template-columns: 8px minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 7px;
+        color: var(--muted);
+        font-size: 11px;
+      }
+
+      .source-mix-swatch {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--source-color);
+        box-shadow: 0 0 8px color-mix(in srgb, var(--source-color) 60%, transparent);
       }
 
       .evidence-list,
@@ -1730,6 +1838,25 @@
           last_tab: "galaxy",
         });
         const TAB_IDS = ["galaxy", "ranked", "tree", "timeline", "matrix", "simulation"];
+        const FACTOR_COLORS = Object.freeze({
+          market_momentum: "#8b5cf6",
+          execution_quality: "#38bdf8",
+          competitive_pressure: "#fb7185",
+          regulatory_pressure: "#f59e0b",
+          resource_availability: "#34d399",
+          technology_readiness: "#22d3ee",
+        });
+        const SOURCE_TYPE_COLORS = Object.freeze({
+          official: "#34d399",
+          regulatory: "#f59e0b",
+          research: "#22d3ee",
+          news: "#38bdf8",
+          financial: "#8b5cf6",
+          expert: "#a78bfa",
+          blog: "#fb7185",
+          forum: "#f472b6",
+          other: "#94a3b8",
+        });
 
         const elements = {
           html: document.documentElement,
@@ -2509,13 +2636,17 @@
 
           state.analysis.factors.forEach((factor) => {
             const wrapper = createElement("div", "factor-control");
+            const value = state.factors[factor.id] ?? 0.5;
+            wrapper.dataset.factorId = factor.id;
+            wrapper.style.setProperty("--factor-color", FACTOR_COLORS[factor.id] ?? "#94a3b8");
+            wrapper.style.setProperty("--factor-value", `${Math.round(value * 100)}%`);
             const label = createElement("label", "", factor.label);
             const inputId = `factor-${factor.id}`;
             label.htmlFor = inputId;
             const output = createElement(
               "output",
               "",
-              `${Math.round((state.factors[factor.id] ?? 0.5) * 100)}%`,
+              `${Math.round(value * 100)}%`,
             );
             output.htmlFor = inputId;
             const slider = createElement("input");
@@ -2524,11 +2655,15 @@
             slider.min = "0";
             slider.max = "1";
             slider.step = "0.01";
-            slider.value = String(state.factors[factor.id] ?? 0.5);
+            slider.value = String(value);
             slider.setAttribute("aria-label", factor.label);
             slider.addEventListener("input", () => {
               state.factors[factor.id] = Number(slider.value);
               output.textContent = `${Math.round(Number(slider.value) * 100)}%`;
+              wrapper.style.setProperty(
+                "--factor-value",
+                `${Math.round(Number(slider.value) * 100)}%`,
+              );
               recalculateForecast();
             });
             wrapper.append(label, output, slider);
@@ -2669,6 +2804,7 @@
 
         function renderEvidencePanel() {
           elements.evidencePanel.replaceChildren();
+          const sourceMix = renderSourceMix();
           const tabs = createElement("div", "evidence-tabs");
           ["supporting", "opposing", "neutral"].forEach((filter) => {
             const button = createElement(
@@ -2743,6 +2879,7 @@
           });
 
           elements.evidencePanel.append(
+            sourceMix,
             tabs,
             evidenceList,
             sourceHeading,
@@ -2750,6 +2887,75 @@
             contradictionHeading,
             contradictionList,
           );
+        }
+
+        function renderSourceMix() {
+          const counts = new Map();
+          state.analysis.sources.forEach((source) => {
+            const type = SOURCE_TYPE_COLORS[source.source_type] ? source.source_type : "other";
+            counts.set(type, (counts.get(type) ?? 0) + 1);
+          });
+          const entries = [...counts.entries()].sort(
+            (left, right) => right[1] - left[1] || left[0].localeCompare(right[0]),
+          );
+          const total = state.analysis.sources.length;
+          const card = createElement("section", "source-mix-card");
+          const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+          svg.classList.add("source-mix-chart");
+          svg.setAttribute("viewBox", "0 0 100 100");
+          svg.setAttribute("role", "img");
+          svg.setAttribute("aria-label", `Source mix: ${total} sources`);
+
+          const track = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+          track.classList.add("source-mix-track");
+          track.setAttribute("cx", "50");
+          track.setAttribute("cy", "50");
+          track.setAttribute("r", "38");
+          svg.append(track);
+
+          const circumference = 2 * Math.PI * 38;
+          let offset = 0;
+          entries.forEach(([type, count]) => {
+            const length = (count / total) * circumference;
+            const segment = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            segment.classList.add("source-mix-segment");
+            segment.setAttribute("cx", "50");
+            segment.setAttribute("cy", "50");
+            segment.setAttribute("r", "38");
+            segment.setAttribute("stroke", SOURCE_TYPE_COLORS[type]);
+            segment.setAttribute("stroke-dasharray", `${length} ${circumference - length}`);
+            segment.setAttribute("stroke-dashoffset", String(-offset));
+            segment.setAttribute("transform", "rotate(-90 50 50)");
+            svg.append(segment);
+            offset += length;
+          });
+
+          const totalLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+          totalLabel.classList.add("source-mix-total");
+          totalLabel.setAttribute("x", "50");
+          totalLabel.setAttribute("y", "49");
+          totalLabel.textContent = String(total);
+          const caption = document.createElementNS("http://www.w3.org/2000/svg", "text");
+          caption.classList.add("source-mix-caption");
+          caption.setAttribute("x", "50");
+          caption.setAttribute("y", "62");
+          caption.textContent = "sources";
+          svg.append(totalLabel, caption);
+
+          const legend = createElement("ul", "source-mix-legend");
+          entries.forEach(([type, count]) => {
+            const row = createElement("li");
+            const swatch = createElement("span", "source-mix-swatch");
+            swatch.style.setProperty("--source-color", SOURCE_TYPE_COLORS[type]);
+            row.append(
+              swatch,
+              createElement("span", "", titleFromId(type)),
+              createElement("strong", "", String(count)),
+            );
+            legend.append(row);
+          });
+          card.append(svg, legend);
+          return card;
         }
 
         function recalculateForecast() {
