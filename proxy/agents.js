@@ -1,8 +1,13 @@
 import { recalculateOutcomes } from "./probability.js";
-import { callMiniMaxJson, deduplicateSources, searchBrave } from "./providers.js";
+import {
+  callMiniMaxJson,
+  callMiniMaxResearchJson,
+  normalizeMiniMaxSources,
+} from "./providers.js";
 import {
   validateA0,
   validateA1,
+  validateA2,
   validateA3,
   validateA4,
   validateA5,
@@ -25,7 +30,36 @@ const OUTPUT_SCHEMAS = Object.freeze({
     needs_clarification: false,
     assumptions_if_not_clarified: ["string"],
   },
-  A1: { queries: ["distinct Brave query strings"] },
+  A1: {
+    research_tasks: [
+      {
+        id: "task_001",
+        purpose:
+          "recent_developments|primary_sources|base_rates|constraints|alternatives|contradictions|expert_analysis",
+        query: "plain language research instruction",
+        freshness: "recent|historical|any",
+        importance: "number 0..1",
+      },
+    ],
+  },
+  A2: {
+    sources: [
+      {
+        id: "src_001",
+        title: "string",
+        url: "https://...",
+        domain: "string",
+        description: "string",
+        extra_snippets: ["string"],
+        published_or_discovered_date: "YYYY-MM-DD|null",
+        retrieved_at: "ISO timestamp",
+        source_type:
+          "official|regulatory|research|news|financial|expert|blog|forum|other",
+      },
+    ],
+    research_summary: "string",
+    coverage_gaps: ["string"],
+  },
   A3: {
     scores: [
       {
@@ -139,15 +173,14 @@ export async function runAnalysisPipeline(input, options = {}) {
         fetchImpl: options.fetchImpl,
         sleep: options.sleep,
       }));
-  const search =
-    options.search ??
+  const callResearchJson =
+    options.callResearchJson ??
     ((request) =>
-      searchBrave(request, {
-        apiKey: options.braveApiKey,
-        baseUrl: options.braveBaseUrl,
+      callMiniMaxResearchJson(request, {
+        apiKey: options.minimaxApiKey,
+        baseUrl: options.minimaxBaseUrl,
         fetchImpl: options.fetchImpl,
         sleep: options.sleep,
-        now: options.now,
       }));
   const now = options.now ?? (() => new Date());
   const randomUUID = options.randomUUID ?? (() => crypto.randomUUID());
@@ -165,7 +198,7 @@ export async function runAnalysisPipeline(input, options = {}) {
     return result;
   };
 
-  const minimumQueries = input.research_depth === "deep" ? 10 : 6;
+  const minimumResearchTasks = input.research_depth === "deep" ? 10 : 6;
   const minimumCandidates = input.research_depth === "deep" ? 40 : 20;
   const minimumFinalSources = input.research_depth === "deep" ? 15 : 8;
   const minimumEvidenceItems = input.research_depth === "deep" ? 25 : 12;
@@ -189,33 +222,45 @@ export async function runAnalysisPipeline(input, options = {}) {
       resolved_question: clarification.forecast_question,
       domain: clarification.domain,
       time_horizon: clarification.time_horizon,
-      minimum_queries: minimumQueries,
+      minimum_research_tasks: minimumResearchTasks,
       coverage:
         "recent developments, primary sources, base rates, constraints, alternatives, and contradictory evidence",
       output_schema: OUTPUT_SCHEMAS.A1,
     },
-    (value) => validateA1(value, minimumQueries),
+    (value) => validateA1(value, minimumResearchTasks),
   );
 
-  const retrievalStarted = now().getTime();
-  const queryResults = await mapWithConcurrency(plan.queries, 4, (query) =>
-    search({
-      query,
-      count: 10,
-      country: localeCountry(input.locale),
-      search_lang: input.locale.slice(0, 2).toLowerCase(),
-      freshness: null,
-      extra_snippets: true,
+  const researchStarted = now().getTime();
+  const research = await callResearchJson({
+    agent: "A2",
+    system: AGENT_SYSTEM,
+    user: JSON.stringify({
+      resolved_question: clarification.forecast_question,
+      domain: clarification.domain,
+      time_horizon: clarification.time_horizon,
+      research_depth: input.research_depth,
+      research_tasks: plan.research_tasks,
+      minimum_candidate_sources: minimumCandidates,
+      required_source_fields: [
+        "title",
+        "url",
+        "domain",
+        "description",
+        "extra_snippets",
+        "published_or_discovered_date",
+        "retrieved_at",
+        "source_type",
+      ],
+      instruction:
+        "Perform native MiniMax deep research. Return source objects only for identifiable sources with URLs. Do not invent URLs. Include coverage gaps.",
+      output_schema: OUTPUT_SCHEMAS.A2,
     }),
-  );
-  agentLatencies.A2 = Math.max(0, now().getTime() - retrievalStarted);
+    validate: (value) => validateA2(value, minimumCandidates),
+    maxCompletionTokens: input.research_depth === "deep" ? 22000 : 14000,
+  });
+  agentLatencies.A2 = Math.max(0, now().getTime() - researchStarted);
 
-  const candidates = deduplicateSources(queryResults.flatMap((result) => result.results))
-    .slice(0, 80)
-    .map((source, index) => ({
-      ...source,
-      id: `src_${String(index + 1).padStart(3, "0")}`,
-    }));
+  const candidates = normalizeMiniMaxSources(research.sources, { now }).slice(0, 80);
 
   const scoring = await runAgent(
     "A3",
@@ -384,6 +429,14 @@ export async function runAnalysisPipeline(input, options = {}) {
   });
 
   const createdAt = now().toISOString();
+  const coverageNote = [
+    enumeration.coverage_note,
+    research.coverage_gaps.length > 0
+      ? `Coverage gaps: ${research.coverage_gaps.join("; ")}`
+      : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
   return {
     analysis_id: randomUUID(),
     request_id: options.requestId ?? randomUUID(),
@@ -393,6 +446,9 @@ export async function runAnalysisPipeline(input, options = {}) {
     domain: clarification.domain,
     time_horizon: clarification.time_horizon,
     assumptions: clarification.assumptions_if_not_clarified ?? [],
+    research_provider: "minimax_native",
+    research_summary: research.research_summary,
+    coverage_gaps: research.coverage_gaps,
     sources: finalSources,
     evidence_items: evidence.evidence_items,
     contradictions: audit.contradictions,
@@ -400,7 +456,7 @@ export async function runAnalysisPipeline(input, options = {}) {
     factors: factorDefinitions(),
     events: audit.events,
     outcomes: calculated,
-    coverage_note: enumeration.coverage_note,
+    coverage_note: coverageNote,
     base_rate_note: calibration.base_rate_note ?? null,
     probability_model: {
       type: "logit_softmax",
@@ -467,20 +523,6 @@ export async function generateEventImpact(input, options = {}) {
   };
 }
 
-async function mapWithConcurrency(items, concurrency, task) {
-  const results = new Array(items.length);
-  let cursor = 0;
-  const workers = Array.from({ length: Math.min(concurrency, items.length) }, async () => {
-    while (cursor < items.length) {
-      const index = cursor;
-      cursor += 1;
-      results[index] = await task(items[index], index);
-    }
-  });
-  await Promise.all(workers);
-  return results;
-}
-
 function sourceSummary(source) {
   return {
     id: source.id,
@@ -490,6 +532,7 @@ function sourceSummary(source) {
     description: source.description,
     extra_snippets: source.extra_snippets,
     published_or_discovered_date: source.published_or_discovered_date,
+    source_type: source.source_type,
     quality_score: source.quality_score,
   };
 }
@@ -504,11 +547,6 @@ function zeroScore(sourceId) {
     specificity_score: 0,
     domain_diversity_bonus: 0,
   };
-}
-
-function localeCountry(locale) {
-  const [, country] = locale.split("-");
-  return country?.length === 2 ? country.toUpperCase() : "US";
 }
 
 function factorDefinitions() {

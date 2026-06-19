@@ -47,19 +47,6 @@ export function validateA0(value) {
 
 export function validateA1(value, minimumTasks) {
   const data = requireRecord(value, "A1 response");
-
-  // Kept temporarily while the pipeline migrates to research_tasks in the next slice.
-  if (Array.isArray(data.queries)) {
-    if (data.queries.length < minimumTasks || data.queries.length > 15) {
-      throw new Error(`A1 requires ${minimumTasks} to 15 queries`);
-    }
-    data.queries = [...new Set(data.queries.map((query) => requireString(query, "A1 query")))];
-    if (data.queries.length < minimumTasks) {
-      throw new Error(`A1 requires ${minimumTasks} distinct queries`);
-    }
-    return data;
-  }
-
   if (
     !Array.isArray(data.research_tasks) ||
     data.research_tasks.length < minimumTasks ||

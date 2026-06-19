@@ -9,10 +9,10 @@ describe("runAnalysisPipeline", () => {
       calls.push(agent);
       return structuredClone(agentFixtures[agent]);
     });
-    const search = vi.fn(async ({ query }) => ({
-      query,
-      results: createCandidateSources(20),
-    }));
+    const callResearchJson = vi.fn(async ({ agent }) => {
+      calls.push(agent);
+      return structuredClone(agentFixtures.A2);
+    });
 
     const payload = await runAnalysisPipeline(
       {
@@ -23,14 +23,21 @@ describe("runAnalysisPipeline", () => {
       },
       {
         callJson,
-        search,
+        callResearchJson,
         now: () => new Date("2026-06-18T12:00:00.000Z"),
         randomUUID: () => "11111111-1111-4111-8111-111111111111",
       },
     );
 
-    expect(calls).toEqual(["A0", "A1", "A3", "A4", "A5", "A6", "A7", "A8", "A9"]);
-    expect(search).toHaveBeenCalledTimes(6);
+    expect(calls).toEqual(["A0", "A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9"]);
+    expect(callResearchJson).toHaveBeenCalledTimes(1);
+    expect(JSON.parse(callResearchJson.mock.calls[0][0].user).research_tasks).toEqual(
+      agentFixtures.A1.research_tasks,
+    );
+    expect(payload.research_provider).toBe("minimax_native");
+    expect(payload.research_summary).toBe(agentFixtures.A2.research_summary);
+    expect(payload.coverage_gaps).toEqual(agentFixtures.A2.coverage_gaps);
+    expect(payload.sources.every((source) => source.source_type)).toBe(true);
     expect(payload.sources.length).toBeGreaterThanOrEqual(8);
     expect(payload.evidence_items).toHaveLength(12);
     expect(payload.outcomes).toHaveLength(4);
@@ -46,9 +53,16 @@ describe("runAnalysisPipeline", () => {
 
   test("caps confidence when evidence thresholds are missed", async () => {
     const callJson = vi.fn(async ({ agent }) => structuredClone(agentFixtures[agent]));
-    const search = vi.fn(async ({ query }) => ({
-      query,
-      results: createCandidateSources(3),
+    const duplicateCandidates = createCandidateSources(20).map((source, index) => ({
+      ...source,
+      url: `https://source${(index % 3) + 1}.test/report`,
+      canonical_url: `https://source${(index % 3) + 1}.test/report`,
+      title: `Source ${(index % 3) + 1}`,
+    }));
+    const callResearchJson = vi.fn(async () => ({
+      ...structuredClone(agentFixtures.A2),
+      sources: duplicateCandidates,
+      coverage_gaps: ["Only three unique sources were discoverable."],
     }));
 
     const payload = await runAnalysisPipeline(
@@ -60,7 +74,7 @@ describe("runAnalysisPipeline", () => {
       },
       {
         callJson,
-        search,
+        callResearchJson,
         now: () => new Date("2026-06-18T12:00:00.000Z"),
         randomUUID: () => "11111111-1111-4111-8111-111111111111",
       },
@@ -70,6 +84,8 @@ describe("runAnalysisPipeline", () => {
     expect(Math.max(...payload.outcomes.map((outcome) => outcome.confidence))).toBeLessThanOrEqual(
       0.45,
     );
+    expect(payload.coverage_gaps).toContain("Only three unique sources were discoverable.");
+    expect(payload.coverage_note).toContain("Only three unique sources were discoverable.");
   });
 
   test("gives every model agent an explicit output schema", async () => {
@@ -77,6 +93,10 @@ describe("runAnalysisPipeline", () => {
     const callJson = vi.fn(async (request) => {
       requests.push(request);
       return structuredClone(agentFixtures[request.agent]);
+    });
+    const callResearchJson = vi.fn(async (request) => {
+      requests.push(request);
+      return structuredClone(agentFixtures.A2);
     });
 
     await runAnalysisPipeline(
@@ -88,7 +108,7 @@ describe("runAnalysisPipeline", () => {
       },
       {
         callJson,
-        search: async ({ query }) => ({ query, results: createCandidateSources(20) }),
+        callResearchJson,
         now: () => new Date("2026-06-18T12:00:00.000Z"),
         randomUUID: () => "11111111-1111-4111-8111-111111111111",
       },

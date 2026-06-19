@@ -15,14 +15,55 @@ export const agentFixtures = {
     assumptions_if_not_clarified: [],
   },
   A1: {
-    queries: [
-      "grid storage deployment latest",
-      "grid battery cost forecast",
-      "grid storage historical growth",
-      "grid storage regulation",
-      "grid storage supply constraints",
-      "grid storage adoption contrary evidence",
+    research_tasks: [
+      {
+        id: "task_001",
+        purpose: "recent_developments",
+        query: "Find recent grid storage deployment developments.",
+        freshness: "recent",
+        importance: 0.95,
+      },
+      {
+        id: "task_002",
+        purpose: "primary_sources",
+        query: "Find primary grid storage deployment sources.",
+        freshness: "recent",
+        importance: 0.9,
+      },
+      {
+        id: "task_003",
+        purpose: "base_rates",
+        query: "Find historical grid storage deployment base rates.",
+        freshness: "historical",
+        importance: 0.85,
+      },
+      {
+        id: "task_004",
+        purpose: "constraints",
+        query: "Find grid storage deployment constraints.",
+        freshness: "any",
+        importance: 0.8,
+      },
+      {
+        id: "task_005",
+        purpose: "alternatives",
+        query: "Find alternative grid flexibility technologies.",
+        freshness: "any",
+        importance: 0.7,
+      },
+      {
+        id: "task_006",
+        purpose: "contradictions",
+        query: "Find contrary grid storage deployment evidence.",
+        freshness: "recent",
+        importance: 0.75,
+      },
     ],
+  },
+  A2: {
+    sources: createCandidateSources(20),
+    research_summary: "MiniMax found a diverse set of decision-relevant sources.",
+    coverage_gaps: ["Private project pipeline data is incomplete."],
   },
   A3: {
     scores: Array.from({ length: 20 }, (_, index) => ({
@@ -161,5 +202,6 @@ export function createCandidateSources(count = 20) {
     extra_snippets: [],
     published_or_discovered_date: "2026-06-01",
     retrieved_at: "2026-06-18T12:00:00.000Z",
+    source_type: ["official", "regulatory", "research", "news"][index % 4],
   }));
 }
