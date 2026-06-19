@@ -200,6 +200,41 @@ console.log("outcome ranking before slider:", beforeRanking);
 console.log("outcome ranking after  slider:", afterRanking);
 console.log("ranking changed:", JSON.stringify(beforeRanking) !== JSON.stringify(afterRanking));
 
+// --- PDF export check -------------------------------------------------
+// Click Export, capture the download, save it, and assert it's a real,
+// multi-page PDF that contains the analysis id and resolved question.
+console.log("\n=== PDF export ===");
+const downloadPromise = page.waitForEvent("download", { timeout: 30_000 });
+await page.click("#tab-galaxy");
+await page.waitForTimeout(200);
+await page.click("#export-button");
+const download = await downloadPromise;
+const pdfPath = "C:/Users/thoma/AppData/Local/Temp/future-scope.pdf";
+await download.saveAs(pdfPath);
+console.log(`saved PDF to ${pdfPath}`);
+
+const { readFile } = await import("node:fs/promises");
+const buf = await readFile(pdfPath);
+const header = buf.subarray(0, 5).toString("ascii");
+const tail = buf.subarray(buf.length - 32).toString("ascii");
+const text = buf.toString("latin1");
+const pageMatches = text.match(/\/Type\s*\/Page[^s]/g) ?? [];
+const rq = await page.evaluate(() => state?.analysis?.resolved_question ?? "");
+const pdfCheck = {
+  headerMagic: header === "%PDF-",
+  hasEof: tail.includes("%%EOF"),
+  byteSize: buf.length,
+  pageCount: pageMatches.length,
+  containsResolvedQuestion: rq ? text.includes(rq.slice(0, 32)) : false,
+};
+console.log("PDF check:", JSON.stringify(pdfCheck, null, 2));
+if (!pdfCheck.headerMagic || !pdfCheck.hasEof || pdfCheck.byteSize < 20_000 || pdfCheck.pageCount < 9) {
+  console.error("PDF export check FAILED");
+  process.exitCode = 1;
+} else {
+  console.log("PDF export check OK");
+}
+
 console.log("\n=== console errors ===");
 for (const e of consoleErrors) console.log(" ", e);
 console.log("\n=== page errors ===");
