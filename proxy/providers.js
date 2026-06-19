@@ -1,4 +1,5 @@
 import { validateSearchInput } from "./validation.js";
+import { SOURCE_TYPES } from "./schemas.js";
 
 const DEFAULT_BRAVE_URL = "https://api.search.brave.com/res/v1/web/search";
 const DEFAULT_MINIMAX_URL = "https://api.minimax.io/v1/chat/completions";
@@ -101,7 +102,8 @@ export async function callMiniMaxJson(request, options = {}) {
           thinking: { type: "adaptive" },
           messages,
           temperature: 0.2,
-          max_completion_tokens: options.maxCompletionTokens ?? 8192,
+          max_completion_tokens:
+            request.maxCompletionTokens ?? options.maxCompletionTokens ?? 8192,
         }),
       },
     });
@@ -141,6 +143,25 @@ export async function callMiniMaxJson(request, options = {}) {
   error.code = "E_LLM_INVALID_JSON";
   error.provider = "minimax";
   throw error;
+}
+
+export async function callMiniMaxResearchJson(request, options = {}) {
+  return callMiniMaxJson(
+    {
+      agent: request.agent ?? "RESEARCH",
+      system: [
+        request.system,
+        "Use MiniMax native research/web-search capability if available.",
+        "Return exactly one JSON object.",
+        "Every source must include title, url, domain, description, source_type, and date if available.",
+        "Do not invent URLs or citations.",
+      ].join("\n"),
+      user: request.user,
+      validate: request.validate,
+      maxCompletionTokens: request.maxCompletionTokens ?? 16000,
+    },
+    options,
+  );
 }
 
 export function extractFirstJsonObject(text) {
@@ -223,7 +244,80 @@ export function deduplicateSources(sources) {
   return unique;
 }
 
-async function fetchWithRetry(url, options) {
+export function normalizeMiniMaxSources(sources, options = {}) {
+  if (!Array.isArray(sources)) return [];
+  const now = options.now?.() ?? new Date();
+  const normalized = [];
+
+  for (const [index, source] of sources.entries()) {
+    if (!source || typeof source !== "object" || Array.isArray(source)) continue;
+    let canonicalUrl;
+    try {
+      const parsedUrl = new URL(source.url);
+      if (!["http:", "https:"].includes(parsedUrl.protocol)) continue;
+      canonicalUrl = canonicalizeUrl(parsedUrl.toString());
+    } catch {
+      continue;
+    }
+
+    const title = cleanText(source.title);
+    const description = cleanText(source.description);
+    if (!title || !description) continue;
+    const parsedRetrievedAt = Date.parse(source.retrieved_at);
+    normalized.push({
+      id: cleanText(source.id) || `src_${String(index + 1).padStart(3, "0")}`,
+      title,
+      url: canonicalUrl,
+      canonical_url: canonicalUrl,
+      domain: new URL(canonicalUrl).hostname,
+      description,
+      extra_snippets: Array.isArray(source.extra_snippets)
+        ? source.extra_snippets.map(cleanText).filter(Boolean).slice(0, 8)
+        : [],
+      published_or_discovered_date: parseDate(source.published_or_discovered_date),
+      retrieved_at: Number.isNaN(parsedRetrievedAt)
+        ? now.toISOString()
+        : new Date(parsedRetrievedAt).toISOString(),
+      source_type: inferSourceType(source),
+    });
+  }
+
+  return deduplicateSources(normalized);
+}
+
+export function inferSourceType(source) {
+  if (SOURCE_TYPES.has(source?.source_type)) return source.source_type;
+
+  const text = [
+    source?.domain,
+    source?.url,
+    source?.title,
+    source?.description,
+  ]
+    .map(cleanText)
+    .join(" ")
+    .toLowerCase();
+
+  if (/\b(?:reddit|discourse|forum|community)\b/.test(text)) return "forum";
+  if (/(?:\/blog\/|\.blog\b|\bblog\b)/.test(text)) return "blog";
+  if (/\b(?:\.gov\b|regulator|regulatory|commission|parliament|ministry)\b/.test(text)) {
+    return "regulatory";
+  }
+  if (/\b(?:arxiv|doi\.org|journal|university|research paper|study)\b/.test(text)) {
+    return "research";
+  }
+  if (/\b(?:reuters|associated press|\bnews\b|newspaper|journalist)\b/.test(text)) {
+    return "news";
+  }
+  if (/\b(?:financial|earnings|quarterly results|investor relations|market data)\b/.test(text)) {
+    return "financial";
+  }
+  if (/\b(?:expert|analyst|analysis|think tank)\b/.test(text)) return "expert";
+  if (/\b(?:official|press release|announcement)\b/.test(text)) return "official";
+  return "other";
+}
+
+export async function fetchWithRetry(url, options) {
   const fetchImpl = options.fetchImpl ?? fetch;
   const sleep = options.sleep ?? ((milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds)));
   let lastError;
@@ -254,19 +348,27 @@ async function fetchWithRetry(url, options) {
   throw lastError ?? new Error("Upstream request failed");
 }
 
-function requireSecret(value, name) {
+export function requireSecret(value, name) {
   if (typeof value !== "string" || value.length < 8) {
     throw new Error(`${name} is not configured`);
   }
   return value;
 }
 
-function cleanText(value) {
+export function cleanText(value) {
   return typeof value === "string" ? value.replace(/\s+/g, " ").trim() : "";
 }
 
 function parseDate(value) {
   if (typeof value !== "string" || !value.trim()) return null;
-  const timestamp = Date.parse(value);
-  return Number.isNaN(timestamp) ? null : new Date(timestamp).toISOString().slice(0, 10);
+  const trimmed = value.trim();
+  const isoDate = trimmed.match(/^(\d{4}-\d{2}-\d{2})(?:T|$)/);
+  if (isoDate) return isoDate[1];
+  const parsed = new Date(trimmed);
+  if (Number.isNaN(parsed.getTime())) return null;
+  return [
+    parsed.getFullYear(),
+    String(parsed.getMonth() + 1).padStart(2, "0"),
+    String(parsed.getDate()).padStart(2, "0"),
+  ].join("-");
 }
