@@ -6,7 +6,7 @@
     <meta name="color-scheme" content="dark light" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'sha256-vrVFMWcPYTJ52KLCNRX5a3oI8NDHMnTi2gFhtKU34Y0='; style-src 'self' 'unsafe-inline' 'sha256-INrJbbEdUXAMWCKgDFVlIIwUW6b07+U4OKsmRnVcTVg='; connect-src 'self' https: http://127.0.0.1:* http://localhost:*; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; worker-src 'none'"
+      content="default-src 'self'; script-src 'sha256-IcIghEmFe4QYSHYgoIZ7UL2BAQJ4d4EKJyH+cfuGtXU='; style-src 'self' 'unsafe-inline' 'sha256-xa9Lf8qZOcaQqPRdzCClytuMoYBwxSNbSZcsDqC9AFc='; connect-src 'self' https: http://127.0.0.1:* http://localhost:*; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; worker-src 'none'"
     />
     <title>Future•Scope — Live probability intelligence</title>
     <style id="app-styles">
@@ -1206,6 +1206,7 @@
       }
 
       .tree-map {
+        position: relative;
         display: grid;
         grid-template-columns: minmax(130px, 0.72fr) minmax(170px, 0.9fr) minmax(240px, 1.4fr);
         align-items: center;
@@ -1223,6 +1224,7 @@
       .tree-branch,
       .tree-outcome {
         position: relative;
+        z-index: 1;
         padding: 14px;
         border: 1px solid var(--node-color, var(--blue));
         border-radius: var(--radius-small);
@@ -1247,15 +1249,22 @@
         gap: 10px;
       }
 
-      .tree-branch::before,
-      .tree-outcome::before {
+      .tree-links {
         position: absolute;
-        top: 50%;
-        right: 100%;
-        width: 34px;
-        height: 1px;
-        background: var(--node-color, var(--blue));
-        content: "";
+        inset: 0;
+        z-index: 0;
+        width: 100%;
+        height: 100%;
+        overflow: visible;
+        pointer-events: none;
+      }
+
+      .tree-link {
+        fill: none;
+        stroke: var(--link-color, var(--blue));
+        stroke-linecap: round;
+        vector-effect: non-scaling-stroke;
+        filter: drop-shadow(0 0 4px var(--link-color, var(--blue)));
       }
 
       .tree-branch strong,
@@ -1284,7 +1293,7 @@
 
       .timeline-axis {
         position: relative;
-        min-height: 190px;
+        min-height: 220px;
         padding: 38px 18px 18px;
         border: 1px solid var(--border);
         border-radius: var(--radius);
@@ -1293,7 +1302,7 @@
 
       .timeline-axis::before {
         position: absolute;
-        top: 104px;
+        top: 122px;
         right: 24px;
         left: 24px;
         height: 2px;
@@ -1310,31 +1319,69 @@
 
       .timeline-events {
         position: absolute;
-        inset: 58px 24px auto;
-        height: 100px;
+        inset: 55px 24px auto;
+        height: 130px;
       }
 
-      .timeline-event {
+      .timeline-milestone {
         position: absolute;
-        top: 18px;
-        width: 124px;
-        min-height: 58px;
-        padding: 8px;
+        top: 0;
+        width: 142px;
+        color: var(--text);
+        transform: translateX(-50%);
+        touch-action: none;
+      }
+
+      .timeline-milestone[data-draggable="true"] {
+        cursor: ew-resize;
+      }
+
+      .timeline-event-card {
+        min-height: 50px;
+        padding: 9px 10px;
         border: 1px solid var(--event-color, var(--purple));
-        border-radius: 7px;
-        background: rgba(8, 14, 30, 0.96);
+        border-radius: var(--radius-small);
+        background:
+          linear-gradient(145deg, color-mix(in srgb, var(--event-color) 11%, transparent), transparent),
+          rgba(8, 14, 30, 0.97);
+        box-shadow:
+          0 0 18px color-mix(in srgb, var(--event-color) 22%, transparent),
+          inset 0 0 16px rgba(255, 255, 255, 0.018);
         font-size: 10px;
         text-align: center;
-        transform: translateX(-50%);
       }
 
-      .timeline-event::after {
+      .timeline-event-card strong,
+      .timeline-event-card span {
+        display: block;
+      }
+
+      .timeline-event-card span {
+        margin-top: 4px;
+        color: var(--muted);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .timeline-pin {
         position: absolute;
-        top: 100%;
+        top: 50px;
         left: 50%;
         width: 1px;
         height: 18px;
         background: var(--event-color, var(--purple));
+        box-shadow: 0 0 8px var(--event-color, var(--purple));
+      }
+
+      .timeline-pin::after {
+        position: absolute;
+        bottom: -4px;
+        left: -4px;
+        width: 9px;
+        height: 9px;
+        border: 2px solid rgba(6, 8, 20, 0.9);
+        border-radius: 50%;
+        background: var(--event-color, var(--purple));
+        box-shadow: 0 0 12px var(--event-color, var(--purple));
         content: "";
       }
 
@@ -1928,6 +1975,7 @@
         function bindEvents() {
           elements.settingsButton.addEventListener("click", openSettings);
           elements.emptySettingsButton.addEventListener("click", openSettings);
+          window.addEventListener("resize", scheduleTreeLinks);
           elements.closeSettingsButton.addEventListener("click", closeSettings);
           elements.cancelSettingsButton.addEventListener("click", closeSettings);
           elements.saveTestButton.addEventListener("click", saveAndTestSettings);
@@ -2235,6 +2283,7 @@
             simulation: renderSimulationView,
           };
           elements.viewRoot.replaceChildren(renderers[state.activeTab]());
+          scheduleTreeLinks();
         }
 
         function renderGalaxyView() {
@@ -2370,7 +2419,11 @@
             "The resolved question branches through the strongest factors into evidence-grounded outcomes.",
           );
           const tree = createElement("div", "tree-map");
+          const links = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+          links.classList.add("tree-links");
+          links.setAttribute("aria-hidden", "true");
           const root = createElement("div", "tree-root");
+          root.dataset.treeRoot = "true";
           root.append(
             createElement("strong", "", state.analysis.resolved_question),
             createElement("span", "", state.analysis.time_horizon.label),
@@ -2380,6 +2433,7 @@
           const strongestFactors = aggregateFactorStrengths().slice(0, 3);
           strongestFactors.forEach(([factorId, strength], index) => {
             const branch = createElement("div", "tree-branch");
+            branch.dataset.treeFactor = factorId;
             branch.style.setProperty("--node-color", [ "var(--green)", "var(--orange)", "var(--blue)" ][index]);
             branch.append(
               createElement("strong", "", titleFromId(factorId)),
@@ -2401,9 +2455,73 @@
             outcomeColumn.append(item);
           });
 
-          tree.append(root, branchColumn, outcomeColumn);
+          tree.append(links, root, branchColumn, outcomeColumn);
           body.append(tree);
           return view;
+        }
+
+        function scheduleTreeLinks() {
+          if (state.activeTab !== "tree") return;
+          requestAnimationFrame(() => {
+            const tree = elements.viewRoot.querySelector(".tree-map");
+            if (tree) drawTreeLinks(tree);
+          });
+        }
+
+        function drawTreeLinks(tree) {
+          const svg = tree.querySelector(".tree-links");
+          const root = tree.querySelector("[data-tree-root]");
+          const branches = [...tree.querySelectorAll("[data-tree-factor]")];
+          const outcomes = [...tree.querySelectorAll("[data-tree-outcome]")];
+          if (!svg || !root || branches.length === 0 || outcomes.length === 0) return;
+
+          const treeRect = tree.getBoundingClientRect();
+          svg.setAttribute("viewBox", `0 0 ${treeRect.width} ${treeRect.height}`);
+          svg.replaceChildren();
+          const point = (element, side) => {
+            const rect = element.getBoundingClientRect();
+            return {
+              x: (side === "right" ? rect.right : rect.left) - treeRect.left,
+              y: rect.top + rect.height / 2 - treeRect.top,
+            };
+          };
+
+          branches.forEach((branch) => {
+            const color = getComputedStyle(branch).getPropertyValue("--node-color").trim();
+            svg.append(createTreeLink(point(root, "right"), point(branch, "left"), color, 1.6));
+            const factorId = branch.dataset.treeFactor;
+            outcomes.forEach((outcomeElement) => {
+              const outcome = state.analysis.outcomes.find(
+                (candidate) => candidate.id === outcomeElement.dataset.treeOutcome,
+              );
+              const coefficient = outcome?.factor_coefficients?.[factorId] ?? 0;
+              const factorValue = state.factors[factorId] ?? 0.5;
+              const contribution = Math.abs(coefficient * (factorValue - 0.5));
+              const width = 1.4 + Math.min(4.2, contribution * 5);
+              svg.append(
+                createTreeLink(
+                  point(branch, "right"),
+                  point(outcomeElement, "left"),
+                  color,
+                  width,
+                ),
+              );
+            });
+          });
+        }
+
+        function createTreeLink(from, to, color, width) {
+          const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+          path.classList.add("tree-link");
+          path.setAttribute("d", curvedPath(from, to));
+          path.setAttribute("stroke-width", width.toFixed(2));
+          path.style.setProperty("--link-color", color || "var(--blue)");
+          return path;
+        }
+
+        function curvedPath(from, to) {
+          const midY = from.y + (to.y - from.y) * 0.52;
+          return `M ${from.x} ${from.y} C ${from.x} ${midY}, ${to.x} ${midY}, ${to.x} ${to.y}`;
         }
 
         function renderTimelineView() {
@@ -2423,18 +2541,54 @@
           );
           const eventLayer = createElement("div", "timeline-events");
           const timelineEvents = [
-            ...(state.analysis.events ?? []),
-            ...state.userEvents.map((event) => ({ ...event, kind: "user" })),
+            ...(state.analysis.events ?? []).map((event) => ({ event, kind: "research" })),
+            ...state.userEvents.map((event) => ({ event, kind: "user" })),
           ];
-          timelineEvents.forEach((event, index) => {
-            const marker = createElement("div", "timeline-event", event.label);
-            const position = eventDatePosition(event.date, start, end, index, timelineEvents.length);
-            marker.style.left = `${position * 100}%`;
-            marker.style.setProperty(
+          timelineEvents.forEach(({ event, kind }, index) => {
+            const milestone = createElement("article", "timeline-milestone");
+            const position =
+              kind === "user"
+                ? Math.max(0, Math.min(1, (event.time_decay - 0.2) / 0.8))
+                : eventDatePosition(event.date, start, end, index, timelineEvents.length);
+            milestone.style.left = `${position * 100}%`;
+            milestone.style.setProperty(
               "--event-color",
-              event.kind === "user" ? "var(--purple)" : "var(--cyan)",
+              kind === "user" ? "var(--purple)" : "var(--cyan)",
             );
-            eventLayer.append(marker);
+            const card = createElement("div", "timeline-event-card");
+            const timeCopy =
+              kind === "user"
+                ? `Time decay ${event.time_decay.toFixed(2)}`
+                : new Date(event.date).toLocaleDateString(undefined, {
+                    year: "numeric",
+                    month: "short",
+                  });
+            card.append(
+              createElement("strong", "", event.label),
+              createElement("span", "timeline-event-meta", timeCopy),
+            );
+            milestone.append(card, createElement("span", "timeline-pin"));
+            if (kind === "user") {
+              milestone.dataset.timelineUserEvent = event.id;
+              milestone.dataset.draggable = "true";
+              milestone.dataset.timeDecay = event.time_decay.toFixed(3);
+              milestone.setAttribute("aria-label", `${event.label}, draggable timeline event`);
+              milestone.addEventListener("pointerdown", (pointerEvent) => {
+                milestone.setPointerCapture(pointerEvent.pointerId);
+                updateTimelineEventPosition(milestone, card, event, eventLayer, pointerEvent.clientX);
+              });
+              milestone.addEventListener("pointermove", (pointerEvent) => {
+                if (!milestone.hasPointerCapture(pointerEvent.pointerId)) return;
+                updateTimelineEventPosition(milestone, card, event, eventLayer, pointerEvent.clientX);
+              });
+              milestone.addEventListener("pointerup", (pointerEvent) => {
+                if (milestone.hasPointerCapture(pointerEvent.pointerId)) {
+                  milestone.releasePointerCapture(pointerEvent.pointerId);
+                }
+                recalculateForecast();
+              });
+            }
+            eventLayer.append(milestone);
           });
           axis.append(labels, eventLayer);
 
@@ -2466,6 +2620,16 @@
 
           body.append(stage);
           return view;
+        }
+
+        function updateTimelineEventPosition(milestone, card, event, eventLayer, clientX) {
+          const bounds = eventLayer.getBoundingClientRect();
+          const position = Math.max(0, Math.min(1, (clientX - bounds.left) / bounds.width));
+          event.time_decay = 0.2 + 0.8 * position;
+          milestone.style.left = `${position * 100}%`;
+          milestone.dataset.timeDecay = event.time_decay.toFixed(3);
+          const meta = card.querySelector(".timeline-event-meta");
+          if (meta) meta.textContent = `Time decay ${event.time_decay.toFixed(2)}`;
         }
 
         function renderProbabilityChart() {

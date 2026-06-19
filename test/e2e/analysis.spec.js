@@ -51,10 +51,18 @@ test("renders all six live analysis views", async ({ page }) => {
   await page.getByRole("tab", { name: "Tree" }).click();
   await expect(page.getByRole("heading", { name: "Scenario tree" })).toBeVisible();
   await expect(page.locator("[data-tree-outcome]")).toHaveCount(4);
+  await expect(page.locator(".tree-links")).toBeVisible();
+  await expect(page.locator(".tree-link")).toHaveCount(15);
+  const treePaths = await page.locator(".tree-link").evaluateAll((paths) =>
+    paths.map((path) => path.getAttribute("d")),
+  );
+  expect(treePaths.every((path) => path?.includes(" C "))).toBe(true);
 
   await page.getByRole("tab", { name: "Timeline" }).click();
   await expect(page.getByRole("heading", { name: "Evidence timeline" })).toBeVisible();
   await expect(page.getByText("Policy review milestone")).toBeVisible();
+  await expect(page.locator(".timeline-milestone")).toHaveCount(1);
+  await expect(page.locator(".timeline-pin")).toHaveCount(1);
 
   await page.getByRole("tab", { name: "Matrix" }).click();
   await expect(page.getByRole("heading", { name: "Outcome impact matrix" })).toBeVisible();
@@ -91,6 +99,21 @@ test("recalculates deterministically from sliders and user events", async ({ pag
   });
   await eventCard.getByRole("checkbox").uncheck();
   await expect(eventCard).toContainText("Inactive");
+  await page.getByRole("tab", { name: "Timeline" }).click();
+  const timelineEvent = page.locator("[data-timeline-user-event]").filter({
+    hasText: "A major policy incentive passes",
+  });
+  await expect(timelineEvent).toHaveAttribute("data-draggable", "true");
+  const beforeDecay = await timelineEvent.getAttribute("data-time-decay");
+  const box = await timelineEvent.boundingBox();
+  expect(box).not.toBeNull();
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(box.x - 80, box.y + box.height / 2, { steps: 8 });
+  await page.mouse.up();
+  await expect(timelineEvent).not.toHaveAttribute("data-time-decay", beforeDecay);
+
+  await page.getByRole("tab", { name: "Simulation" }).click();
   await eventCard.getByRole("button", { name: "Delete event" }).click();
   await expect(eventCard).toHaveCount(0);
 });
