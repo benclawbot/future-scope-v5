@@ -193,7 +193,7 @@ export function normalizeMiniMaxSources(sources, options = {}) {
     let canonicalUrl;
     try {
       const parsedUrl = new URL(source.url);
-      if (!["http:", "https:"].includes(parsedUrl.protocol)) continue;
+      if (parsedUrl.protocol !== "https:") continue;
       canonicalUrl = canonicalizeUrl(parsedUrl.toString());
     } catch {
       continue;

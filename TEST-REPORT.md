@@ -1,38 +1,33 @@
-# Future Scope v5 — Test Report
+# Future•Scope Test Report
 
-Verification date: June 18, 2026
+Verification date: June 19, 2026
 
 ## Result
 
-The application build, secure Cloudflare Worker proxy, controlled provider integration, and browser flows pass end to end. A separate live-provider smoke test reached the real MiniMax and Brave execution path, but could not complete because Brave returned HTTP 429 (`E_BRAVE_QUOTA`) for the supplied credential.
-
-No credentials are included in the repository or packaged deliverables.
+Future•Scope 5.1 uses MiniMax native research through the mandatory Cloudflare Worker, returns validated source-grounded analysis, and preserves deterministic probability simulation. No credentials or production forecast fixtures are included in the repository.
 
 ## Automated verification
 
-- `npm run check`: passed. JavaScript syntax, CSP hashes, and the production-data guard all passed.
-- `npm test`: passed, 38 tests across 7 files.
-- `npm run test:e2e -- --reporter=line --workers=1`: passed, 14 browser tests.
-- `npm audit --omit=dev`: passed with 0 vulnerabilities.
-- `npx wrangler deploy --dry-run`: passed. The Worker bundle, variables, and rate-limit bindings were accepted.
-- `git diff --check`: passed.
-
-The controlled integration test starts local Brave and MiniMax contract services, invokes the real Worker `/api/analyze` route, executes stages A0 through A9, and validates the resulting forecast contract.
-
-## Browser and visual verification
-
-The empty state and all six analysis views were inspected at a 1440×1000 desktop viewport. Responsive tests cover 1280, 768, and 320 pixel widths, including every populated view at 320 pixels with no horizontal overflow.
-
-Browser checks found no console warnings or errors. Accessibility coverage verifies named controls, heading order, keyboard tab navigation, visible evidence sources, reduced-motion behavior, and minimum token contrast.
-
-## Live-provider smoke test
-
-The live check successfully completed MiniMax stages A0 and A1 before Brave Search rejected retrieval with HTTP 429. The application mapped this response to `E_BRAVE_QUOTA` and returned a structured error with request ID `f8d37711-c886-492b-992e-c76eb81b0977` after 13,704 ms.
-
-To complete this final external smoke test, configure a Brave Search credential with available quota in `.dev.vars`, then run:
+The release gate is:
 
 ```powershell
-npm run test:live
+npm run check
+npm test
+npm run test:e2e
+npm audit --omit=dev
+npx wrangler deploy --dry-run
 ```
 
-The Cloudflare API token is not required for local development or provider testing. It is only needed when deploying or managing the Worker in a Cloudflare account.
+Static checks validate JavaScript syntax, browser-normalized CSP hashes, the absence of production forecast fixtures, and complete retirement of the previous research integration.
+
+All 44 unit and integration tests pass. They cover provider retries, JSON repair, MiniMax research contracts, source normalization and classification, A0 through A9 orchestration, confidence caps, probability math, validation, authentication, CORS, rate limits, Worker routes, and structured errors.
+
+All 14 browser tests pass. They cover the honest empty state, minimal Settings dialog, orbital brand, all six populated views, source-type donut, explicit supporting/opposing/neutral statements with named sources, exact factor colors, rounded shared-trunk SVG tree links with ports and arrowheads, draggable timeline events, deterministic recalculation, keyboard navigation, reduced motion, persistence boundaries, and responsive layouts from 320px upward.
+
+The dependency audit reports zero production vulnerabilities, and the Cloudflare Worker dry run packages 58.82 KiB uncompressed and 14.71 KiB gzip.
+
+## Live provider check
+
+`npm run test:live` sends a real analysis request through a configured Worker. It requires `APP_AUTH_TOKEN` and a Worker with `MINIMAX_API_KEY`. Its output is transient and must not be committed.
+
+The Cloudflare API token is required only for deployment or Worker-account management.

@@ -65,6 +65,16 @@ describe("MiniMax source normalization", () => {
           retrieved_at: null,
           source_type: "other",
         },
+        {
+          id: "src_insecure",
+          title: "Insecure source",
+          url: "http://example.com/report",
+          description: "Not safe to expose as an external evidence link",
+          extra_snippets: [],
+          published_or_discovered_date: null,
+          retrieved_at: null,
+          source_type: "other",
+        },
       ],
       { now: () => new Date("2026-06-18T12:00:00.000Z") },
     );

@@ -52,11 +52,17 @@ test("renders all six live analysis views", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Scenario tree" })).toBeVisible();
   await expect(page.locator("[data-tree-outcome]")).toHaveCount(4);
   await expect(page.locator(".tree-links")).toBeVisible();
-  await expect(page.locator(".tree-link")).toHaveCount(15);
+  await expect(page.locator('.tree-link[data-link-role="root-branch"]')).toHaveCount(3);
+  await expect(page.locator('.tree-link[data-link-role="branch-outcome"]')).toHaveCount(4);
+  await expect(page.locator(".tree-port")).toHaveCount(6);
   const treePaths = await page.locator(".tree-link").evaluateAll((paths) =>
-    paths.map((path) => path.getAttribute("d")),
+    paths.map((path) => ({
+      d: path.getAttribute("d"),
+      marker: path.getAttribute("marker-end"),
+    })),
   );
-  expect(treePaths.every((path) => path?.includes(" C "))).toBe(true);
+  expect(treePaths.every(({ d }) => d?.includes(" H ") && d.includes(" C "))).toBe(true);
+  expect(treePaths.every(({ marker }) => marker?.startsWith("url(#tree-arrow-"))).toBe(true);
 
   await page.getByRole("tab", { name: "Timeline" }).click();
   await expect(page.getByRole("heading", { name: "Evidence timeline" })).toBeVisible();
@@ -129,9 +135,33 @@ test("supports keyboard tab navigation and exposes sourced evidence", async ({ p
     "true",
   );
 
-  await expect(page.getByRole("link", { name: "Evidence source 1" })).toHaveAttribute(
-    "href",
-    "https://source1.example/report",
-  );
+  await expect(
+    page.getByText(
+      "Utility procurement plans in the research set schedule additional grid-scale battery capacity through 2028.",
+    ),
+  ).toBeVisible();
+  await expect(page.getByText("Supporting statement", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("Official source", { exact: true }).first()).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Utility storage procurement outlook" }).first(),
+  ).toHaveAttribute("href", "https://source1.example/report");
+
+  await page.getByRole("button", { name: "Opposing" }).click();
+  await expect(
+    page.getByText(
+      "Interconnection queues in several regions could delay otherwise financeable storage projects.",
+    ),
+  ).toBeVisible();
+  await expect(page.getByText("Opposing statement", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("Regulatory source", { exact: true }).first()).toBeVisible();
+
+  await page.getByRole("button", { name: "Neutral" }).click();
+  await expect(
+    page.getByText(
+      "Current regional deployment remains uneven, so the national acceleration signal is not yet uniform.",
+    ),
+  ).toBeVisible();
+  await expect(page.getByText("Neutral statement", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("News source", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("Interconnection constraints")).toBeVisible();
 });

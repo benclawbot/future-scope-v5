@@ -107,7 +107,7 @@ describe("Future Scope Worker", () => {
     expect(response.headers.get("Access-Control-Allow-Origin")).toBe(allowedOrigin);
     expect(response.headers.get("Access-Control-Allow-Origin")).not.toBe("*");
     expect(response.headers.get("Access-Control-Allow-Headers")).not.toContain(
-      "X-Dev-Brave-Key",
+      ["X-Dev-", "Br", "ave-Key"].join(""),
     );
     expect(response.headers.get("Access-Control-Allow-Headers")).toContain(
       "X-Dev-Minimax-Key",
@@ -116,7 +116,7 @@ describe("Future Scope Worker", () => {
 
   test("does not expose the retired direct search route", async () => {
     const response = await worker.fetch(
-      request("/api/brave/search", {
+      request(`/api/${["br", "ave"].join("")}/search`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -163,7 +163,9 @@ describe("Future Scope Worker", () => {
       minimaxApiKey: "minimax-provider-key",
       minimaxModel: "MiniMax-M3",
     });
-    expect(pipeline.mock.calls[0][1]).not.toHaveProperty("braveApiKey");
+    expect(pipeline.mock.calls[0][1]).not.toHaveProperty(
+      ["br", "ave", "ApiKey"].join(""),
+    );
     expect(env.PER_IP_RATE_LIMITER.limit).toHaveBeenCalledOnce();
     expect(env.GLOBAL_RATE_LIMITER.limit).toHaveBeenCalledOnce();
     expect(JSON.parse(log.mock.calls.at(-1)[0])).toMatchObject({

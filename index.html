@@ -6,7 +6,7 @@
     <meta name="color-scheme" content="dark light" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'sha256-IcIghEmFe4QYSHYgoIZ7UL2BAQJ4d4EKJyH+cfuGtXU='; style-src 'self' 'unsafe-inline' 'sha256-xa9Lf8qZOcaQqPRdzCClytuMoYBwxSNbSZcsDqC9AFc='; connect-src 'self' https: http://127.0.0.1:* http://localhost:*; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; worker-src 'none'"
+      content="default-src 'self'; script-src 'sha256-UvUkONI3CCzNghQnqGsKbPDvnYQZQv0OsACxGIU/3pI='; style-src 'self' 'unsafe-inline' 'sha256-XbIUYU6uNPeiGfr1aVvzfzxCoXj4eWD99KqlfXqikTY='; connect-src 'self' https: http://127.0.0.1:* http://localhost:*; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; worker-src 'none'"
     />
     <title>Future•Scope — Live probability intelligence</title>
     <style id="app-styles">
@@ -981,6 +981,76 @@
         font-size: 12px;
       }
 
+      .evidence-item {
+        --evidence-color: var(--blue);
+        padding: 11px 12px;
+        border: 1px solid color-mix(in srgb, var(--evidence-color) 28%, var(--border));
+        border-left: 3px solid var(--evidence-color);
+        border-radius: var(--radius-small);
+        background: color-mix(in srgb, var(--evidence-color) 5%, transparent);
+      }
+
+      .evidence-item[data-stance="supporting"] {
+        --evidence-color: var(--green);
+      }
+
+      .evidence-item[data-stance="opposing"] {
+        --evidence-color: var(--red);
+      }
+
+      .evidence-item[data-stance="neutral"] {
+        --evidence-color: var(--blue);
+      }
+
+      .evidence-item-header,
+      .evidence-source-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      .evidence-stance {
+        color: var(--evidence-color);
+        font-size: 10px;
+        font-weight: 750;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+
+      .evidence-strength {
+        color: var(--subtle);
+        font-size: 10px;
+      }
+
+      .evidence-claim {
+        margin-top: 8px !important;
+        color: var(--text);
+        line-height: 1.5;
+      }
+
+      .evidence-source-row {
+        align-items: flex-start;
+        margin-top: 9px;
+        color: var(--subtle);
+        font-size: 10px;
+      }
+
+      .evidence-source-links {
+        display: flex;
+        flex: 1;
+        flex-wrap: wrap;
+        gap: 3px 7px;
+        min-width: 0;
+      }
+
+      .evidence-source-links a {
+        color: var(--muted);
+        line-height: 1.35;
+        text-decoration-color: color-mix(in srgb, var(--evidence-color) 60%, transparent);
+        text-underline-offset: 2px;
+      }
+
       .evidence-meta,
       .source-meta {
         display: flex;
@@ -1263,8 +1333,17 @@
         fill: none;
         stroke: var(--link-color, var(--blue));
         stroke-linecap: round;
+        stroke-linejoin: round;
         vector-effect: non-scaling-stroke;
-        filter: drop-shadow(0 0 4px var(--link-color, var(--blue)));
+        filter: drop-shadow(0 0 3px var(--link-color, var(--blue)));
+      }
+
+      .tree-port {
+        fill: var(--link-color, var(--blue));
+        stroke: rgba(255, 255, 255, 0.72);
+        stroke-width: 1.2;
+        vector-effect: non-scaling-stroke;
+        filter: drop-shadow(0 0 5px var(--link-color, var(--blue)));
       }
 
       .tree-branch strong,
@@ -2478,6 +2557,8 @@
           const treeRect = tree.getBoundingClientRect();
           svg.setAttribute("viewBox", `0 0 ${treeRect.width} ${treeRect.height}`);
           svg.replaceChildren();
+          const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+          svg.append(defs);
           const point = (element, side) => {
             const rect = element.getBoundingClientRect();
             return {
@@ -2485,43 +2566,150 @@
               y: rect.top + rect.height / 2 - treeRect.top,
             };
           };
+          const assignments = assignTreeOutcomes(branches, outcomes);
+          const ports = [];
+          const rootPoint = point(root, "right");
+          const rootPortGap = Math.min(14, root.getBoundingClientRect().height / 5);
 
-          branches.forEach((branch) => {
+          branches.forEach((branch, branchIndex) => {
             const color = getComputedStyle(branch).getPropertyValue("--node-color").trim();
-            svg.append(createTreeLink(point(root, "right"), point(branch, "left"), color, 1.6));
             const factorId = branch.dataset.treeFactor;
-            outcomes.forEach((outcomeElement) => {
-              const outcome = state.analysis.outcomes.find(
-                (candidate) => candidate.id === outcomeElement.dataset.treeOutcome,
-              );
-              const coefficient = outcome?.factor_coefficients?.[factorId] ?? 0;
-              const factorValue = state.factors[factorId] ?? 0.5;
-              const contribution = Math.abs(coefficient * (factorValue - 0.5));
-              const width = 1.4 + Math.min(4.2, contribution * 5);
+            const markerId = `tree-arrow-${branchIndex}`;
+            createTreeMarker(defs, markerId, color);
+            const rootFrom = {
+              x: rootPoint.x,
+              y: rootPoint.y + (branchIndex - (branches.length - 1) / 2) * rootPortGap,
+            };
+            svg.append(
+              createTreeLink(
+                rootFrom,
+                point(branch, "left"),
+                color,
+                1.7,
+                markerId,
+                "root-branch",
+              ),
+            );
+            ports.push(createTreePort(rootFrom, color));
+
+            const assignedOutcomes = assignments.get(factorId) ?? [];
+            const branchFrom = point(branch, "right");
+            assignedOutcomes.forEach((outcomeElement) => {
+              const coefficient = treeOutcomeStrength(outcomeElement, factorId);
+              const width = 1.55 + Math.min(1.35, coefficient * 1.4);
               svg.append(
                 createTreeLink(
-                  point(branch, "right"),
+                  branchFrom,
                   point(outcomeElement, "left"),
                   color,
                   width,
+                  markerId,
+                  "branch-outcome",
                 ),
               );
             });
+            if (assignedOutcomes.length > 0) ports.push(createTreePort(branchFrom, color));
           });
+          svg.append(...ports);
         }
 
-        function createTreeLink(from, to, color, width) {
+        function assignTreeOutcomes(branches, outcomes) {
+          const assignments = new Map(
+            branches.map((branch) => [branch.dataset.treeFactor, []]),
+          );
+          const remaining = new Set(outcomes);
+
+          branches.forEach((branch) => {
+            const factorId = branch.dataset.treeFactor;
+            const strongestUnassigned = [...remaining].sort(
+              (left, right) =>
+                treeOutcomeStrength(right, factorId) -
+                treeOutcomeStrength(left, factorId),
+            )[0];
+            if (!strongestUnassigned) return;
+            assignments.get(factorId).push(strongestUnassigned);
+            remaining.delete(strongestUnassigned);
+          });
+
+          remaining.forEach((outcomeElement) => {
+            const strongestBranch = branches.reduce((best, candidate) =>
+              treeOutcomeStrength(outcomeElement, candidate.dataset.treeFactor) >
+              treeOutcomeStrength(outcomeElement, best.dataset.treeFactor)
+                ? candidate
+                : best,
+            );
+            assignments.get(strongestBranch.dataset.treeFactor).push(outcomeElement);
+          });
+          return assignments;
+        }
+
+        function treeOutcomeStrength(outcomeElement, factorId) {
+          const outcome = state.analysis.outcomes.find(
+            (candidate) => candidate.id === outcomeElement.dataset.treeOutcome,
+          );
+          return Math.abs(outcome?.factor_coefficients?.[factorId] ?? 0);
+        }
+
+        function createTreeMarker(defs, id, color) {
+          const marker = document.createElementNS("http://www.w3.org/2000/svg", "marker");
+          marker.id = id;
+          marker.setAttribute("viewBox", "0 0 8 8");
+          marker.setAttribute("refX", "7");
+          marker.setAttribute("refY", "4");
+          marker.setAttribute("markerWidth", "8");
+          marker.setAttribute("markerHeight", "8");
+          marker.setAttribute("markerUnits", "userSpaceOnUse");
+          marker.setAttribute("orient", "auto");
+          const arrow = document.createElementNS("http://www.w3.org/2000/svg", "path");
+          arrow.setAttribute("d", "M 0 0 L 8 4 L 0 8 Z");
+          arrow.setAttribute("fill", color);
+          marker.append(arrow);
+          defs.append(marker);
+        }
+
+        function createTreeLink(from, to, color, width, markerId, role) {
           const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
           path.classList.add("tree-link");
-          path.setAttribute("d", curvedPath(from, to));
+          path.dataset.linkRole = role;
+          path.setAttribute("d", roundedOrthogonalPath(from, to));
           path.setAttribute("stroke-width", width.toFixed(2));
+          path.setAttribute("marker-end", `url(#${markerId})`);
           path.style.setProperty("--link-color", color || "var(--blue)");
           return path;
         }
 
-        function curvedPath(from, to) {
-          const midY = from.y + (to.y - from.y) * 0.52;
-          return `M ${from.x} ${from.y} C ${from.x} ${midY}, ${to.x} ${midY}, ${to.x} ${to.y}`;
+        function createTreePort(at, color) {
+          const port = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+          port.classList.add("tree-port");
+          port.setAttribute("cx", at.x);
+          port.setAttribute("cy", at.y);
+          port.setAttribute("r", "3.6");
+          port.style.setProperty("--link-color", color || "var(--blue)");
+          return port;
+        }
+
+        function roundedOrthogonalPath(from, to) {
+          const deltaY = to.y - from.y;
+          const direction = Math.sign(deltaY) || 1;
+          const trunkX = from.x + (to.x - from.x) * 0.46;
+          const radius = Math.min(
+            16,
+            Math.abs(deltaY) / 2,
+            Math.max(0, (trunkX - from.x) / 2),
+            Math.max(0, (to.x - trunkX) / 2),
+          );
+          const firstCornerX = trunkX - radius;
+          const firstCornerY = from.y + direction * radius;
+          const secondCornerY = to.y - direction * radius;
+          const secondCornerX = trunkX + radius;
+          return [
+            `M ${from.x} ${from.y}`,
+            `H ${firstCornerX}`,
+            `C ${trunkX} ${from.y}, ${trunkX} ${from.y}, ${trunkX} ${firstCornerY}`,
+            `V ${secondCornerY}`,
+            `C ${trunkX} ${to.y}, ${trunkX} ${to.y}, ${secondCornerX} ${to.y}`,
+            `H ${to.x}`,
+          ].join(" ");
         }
 
         function renderTimelineView() {
@@ -2995,13 +3183,63 @@
           } else {
             matchingEvidence.forEach((item) => {
               const entry = createElement("li", "evidence-item");
-              entry.append(createElement("p", "", item.claim));
+              entry.dataset.stance = item.stance;
+              const header = createElement("div", "evidence-item-header");
+              header.append(
+                createElement(
+                  "span",
+                  "evidence-stance",
+                  `${item.stance[0].toUpperCase()}${item.stance.slice(1)} statement`,
+                ),
+                createElement(
+                  "span",
+                  "evidence-strength",
+                  `${Math.round(item.strength * 100)}% strength`,
+                ),
+              );
+              const claim = createElement("p", "evidence-claim", item.claim);
+              const sourceRow = createElement("div", "evidence-source-row");
+              const citedSources = item.source_ids
+                .map((sourceId) =>
+                  state.analysis.sources.find((candidate) => candidate.id === sourceId),
+                )
+                .filter(Boolean);
+              const sourceLabel =
+                citedSources.length === 1
+                  ? `${titleFromId(citedSources[0].source_type)} source`
+                  : "Sources";
+              sourceRow.append(createElement("span", "", sourceLabel));
+              const sourceLinks = createElement("div", "evidence-source-links");
+              item.source_ids.forEach((sourceId) => {
+                const source = citedSources.find((candidate) => candidate.id === sourceId);
+                if (!source) {
+                  sourceLinks.append(createElement("span", "", sourceId));
+                  return;
+                }
+                const link = createElement("a", "", source.title);
+                link.href = safeExternalUrl(source.url);
+                link.target = "_blank";
+                link.rel = "noopener noreferrer";
+                sourceLinks.append(link);
+              });
+              sourceRow.append(sourceLinks);
+              const sourceQuality =
+                citedSources.length > 0
+                  ? citedSources.reduce(
+                      (total, source) => total + (source.quality_score ?? 0),
+                      0,
+                    ) / citedSources.length
+                  : item.quality_weight;
               const meta = createElement("div", "evidence-meta");
               meta.append(
-                createElement("span", "", item.source_ids.join(", ")),
-                createElement("span", "", `${Math.round(item.strength * 100)}% strength`),
+                createElement("span", "", item.date ? formatEvidenceDate(item.date) : "Date unavailable"),
+                createElement(
+                  "span",
+                  "",
+                  `${Math.round(sourceQuality * 100)}% source quality`,
+                ),
               );
-              entry.append(meta);
+              entry.append(header, claim, sourceRow, meta);
               evidenceList.append(entry);
             });
           }
@@ -3222,6 +3460,17 @@
             .split("_")
             .map((word) => word[0].toUpperCase() + word.slice(1))
             .join(" ");
+        }
+
+        function formatEvidenceDate(value) {
+          const date = new Date(/^\d{4}-\d{2}-\d{2}$/.test(value) ? `${value}T00:00:00Z` : value);
+          if (Number.isNaN(date.getTime())) return "Date unavailable";
+          return date.toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+            timeZone: "UTC",
+          });
         }
 
         function eventDatePosition(date, start, end, index, total) {
