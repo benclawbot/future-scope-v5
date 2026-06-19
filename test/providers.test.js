@@ -1,11 +1,14 @@
 import { describe, expect, test, vi } from "vitest";
 import {
   callMiniMaxJson,
+  callMiniMaxResearchJson,
   canonicalizeUrl,
   deduplicateSources,
   extractFirstJsonObject,
-  searchBrave,
+  inferSourceType,
+  normalizeMiniMaxSources,
 } from "../proxy/providers.js";
+import { validateA2 } from "../proxy/schemas.js";
 
 describe("source normalization", () => {
   test("canonicalizes tracking parameters and trailing slashes", () => {
@@ -37,46 +40,122 @@ describe("extractFirstJsonObject", () => {
   });
 });
 
-describe("searchBrave", () => {
-  test("retries one upstream failure and normalizes results", async () => {
-    const fetchImpl = vi
-      .fn()
-      .mockResolvedValueOnce(new Response("unavailable", { status: 503 }))
-      .mockResolvedValueOnce(
-        Response.json({
-          web: {
-            results: [
-              {
-                title: "Official release",
-                url: "https://example.com/release?utm_medium=feed",
-                description: "Primary announcement",
-                extra_snippets: ["Additional detail"],
-                age: "June 18, 2026",
-              },
-            ],
-          },
-        }),
-      );
+describe("MiniMax source normalization", () => {
+  test("normalizes source fields and rejects non-web URLs", () => {
+    const sources = normalizeMiniMaxSources(
+      [
+        {
+          id: "src_model",
+          title: "  Official   release ",
+          url: "https://Example.com/release/?utm_medium=feed",
+          domain: "wrong.test",
+          description: " Primary   announcement ",
+          extra_snippets: [" Additional detail ", "", "Second detail"],
+          published_or_discovered_date: "June 18, 2026",
+          retrieved_at: null,
+          source_type: "official",
+        },
+        {
+          id: "src_invalid",
+          title: "Invalid source",
+          url: "ftp://example.com/report",
+          description: "Not a web source",
+          extra_snippets: [],
+          published_or_discovered_date: null,
+          retrieved_at: null,
+          source_type: "other",
+        },
+        {
+          id: "src_insecure",
+          title: "Insecure source",
+          url: "http://example.com/report",
+          description: "Not safe to expose as an external evidence link",
+          extra_snippets: [],
+          published_or_discovered_date: null,
+          retrieved_at: null,
+          source_type: "other",
+        },
+      ],
+      { now: () => new Date("2026-06-18T12:00:00.000Z") },
+    );
 
-    const result = await searchBrave(
-      { query: "official release", freshness: "pw" },
+    expect(sources).toEqual([
+      {
+        id: "src_model",
+        title: "Official release",
+        url: "https://example.com/release",
+        canonical_url: "https://example.com/release",
+        domain: "example.com",
+        description: "Primary announcement",
+        extra_snippets: ["Additional detail", "Second detail"],
+        published_or_discovered_date: "2026-06-18",
+        retrieved_at: "2026-06-18T12:00:00.000Z",
+        source_type: "official",
+      },
+    ]);
+  });
+
+  test.each([
+    [{ domain: "agency.gov" }, "regulatory"],
+    [{ url: "https://arxiv.org/abs/1234" }, "research"],
+    [{ domain: "reuters.com" }, "news"],
+    [{ title: "Quarterly financial results" }, "financial"],
+    [{ description: "Expert analysis from an industry analyst" }, "expert"],
+    [{ url: "https://example.com/blog/update" }, "blog"],
+    [{ domain: "reddit.com" }, "forum"],
+    [{ title: "Company official announcement" }, "official"],
+    [{ title: "Unclassified source" }, "other"],
+  ])("infers source type for %o", (source, expected) => {
+    expect(inferSourceType(source)).toBe(expected);
+  });
+});
+
+describe("callMiniMaxResearchJson", () => {
+  test("calls MiniMax with strict native-research source instructions", async () => {
+    const research = {
+      sources: [
+        {
+          id: "src_001",
+          title: "Official release",
+          url: "https://example.com/release",
+          domain: "example.com",
+          description: "Primary announcement",
+          extra_snippets: ["Additional detail"],
+          published_or_discovered_date: "2026-06-18",
+          retrieved_at: "2026-06-18T12:00:00.000Z",
+          source_type: "official",
+        },
+      ],
+      research_summary: "One primary source was found.",
+      coverage_gaps: [],
+    };
+    const fetchImpl = vi.fn(async () =>
+      Response.json({
+        choices: [{ message: { content: JSON.stringify(research) } }],
+      }),
+    );
+
+    const result = await callMiniMaxResearchJson(
+      {
+        agent: "A2",
+        system: "Research the resolved question.",
+        user: "{}",
+        validate: (value) => validateA2(value, 1),
+      },
       {
         apiKey: "provider-key",
         fetchImpl,
         sleep: async () => {},
-        now: () => new Date("2026-06-18T12:00:00.000Z"),
       },
     );
 
-    expect(fetchImpl).toHaveBeenCalledTimes(2);
-    expect(fetchImpl.mock.calls[1][0]).toContain("freshness=pw");
-    expect(result.results[0]).toMatchObject({
-      id: "src_001",
-      title: "Official release",
-      url: "https://example.com/release",
-      domain: "example.com",
-      retrieved_at: "2026-06-18T12:00:00.000Z",
-    });
+    expect(result).toEqual(research);
+    const body = JSON.parse(fetchImpl.mock.calls[0][1].body);
+    expect(body.messages[0].content).toContain(
+      "Use MiniMax native research/web-search capability if available.",
+    );
+    expect(body.messages[0].content).toContain("Do not invent URLs or citations.");
+    expect(body.max_completion_tokens).toBe(16000);
   });
 });
 

@@ -40,10 +40,11 @@ async function handleApi(request, response, url) {
   if (url.pathname === "/api/health") {
     sendJson(response, 200, {
       ok: true,
-      brave_configured: true,
       minimax_configured: true,
+      research_enabled: true,
+      research_provider: "minimax_native",
       server_time: "2026-06-18T12:00:00.000Z",
-      version: "5.0.0-test",
+      version: "5.1.0-test",
     });
     return;
   }
@@ -123,6 +124,52 @@ function createContractPayload(prompt, requestId) {
     "Regional divergence",
   ];
   const probabilities = [42.4, 30.1, 17.6, 9.9];
+  const sources = [
+    ["Utility storage procurement outlook", "official", "Procurement schedules for utility-scale battery projects through 2028."],
+    ["Interconnection queue status report", "regulatory", "Regional queue timing, reform progress, and connection-delay evidence."],
+    ["Grid battery cost and performance study", "research", "Cost, efficiency, and operating-life trends for grid battery systems."],
+    ["Capacity market reform briefing", "news", "Reported market-rule changes affecting storage participation and revenue."],
+    ["Storage manufacturing expansion filings", "official", "Announced cell and system manufacturing additions serving grid projects."],
+    ["Siting and permitting update", "regulatory", "Current permitting timelines and regional approval constraints."],
+    ["Long-duration storage economics review", "research", "Evidence on duration, utilization, and project economics beyond four hours."],
+    ["Regional storage deployment tracker", "news", "Reported deployment progress and differences across major regions."],
+  ].map(([title, sourceType, description], index) => ({
+    id: `src_${String(index + 1).padStart(3, "0")}`,
+    title,
+    url: `https://source${index + 1}.example/report`,
+    canonical_url: `https://source${index + 1}.example/report`,
+    domain: `source${index + 1}.example`,
+    description,
+    extra_snippets: [],
+    published_or_discovered_date: "2026-06-01",
+    retrieved_at: "2026-06-18T12:00:00.000Z",
+    source_type: sourceType,
+    quality_score: 0.82 - index * 0.02,
+  }));
+  const evidenceItems = [
+    ["Utility procurement plans in the research set schedule additional grid-scale battery capacity through 2028.", "src_001", "supporting", ["out_001"], ["out_003"], 0.86],
+    ["Battery system cost and efficiency trends improve the economics of four-hour grid storage.", "src_003", "supporting", ["out_001"], ["out_003"], 0.82],
+    ["Manufacturing expansion filings indicate more domestic supply for utility storage projects.", "src_005", "supporting", ["out_001"], ["out_004"], 0.76],
+    ["Capacity-market reforms broaden the revenue pathways available to storage operators.", "src_004", "supporting", ["out_001", "out_002"], ["out_003"], 0.72],
+    ["Interconnection queues in several regions could delay otherwise financeable storage projects.", "src_002", "opposing", ["out_003"], ["out_001"], 0.84],
+    ["Siting and permitting timelines remain long enough to constrain near-term project starts.", "src_006", "opposing", ["out_003"], ["out_001"], 0.78],
+    ["Higher financing costs can offset part of the benefit from falling battery-system prices.", "src_004", "opposing", ["out_002", "out_003"], ["out_001"], 0.7],
+    ["Long-duration storage projects still face weaker utilization economics than four-hour systems.", "src_007", "opposing", ["out_003", "out_004"], ["out_001"], 0.68],
+    ["Current regional deployment remains uneven, so the national acceleration signal is not yet uniform.", "src_008", "neutral", ["out_004"], [], 0.74],
+    ["Near-term additions are concentrated in markets with established capacity or ancillary-service revenues.", "src_008", "neutral", ["out_002", "out_004"], [], 0.69],
+    ["Policy support varies by jurisdiction and does not imply the same construction pace everywhere.", "src_006", "neutral", ["out_002", "out_004"], [], 0.66],
+    ["Long-duration storage remains a smaller segment than lithium-ion deployment in the current project mix.", "src_007", "neutral", ["out_002"], [], 0.64],
+  ].map(([claim, sourceId, stance, supports, opposes, strength], index) => ({
+    id: `ev_${String(index + 1).padStart(3, "0")}`,
+    claim,
+    source_ids: [sourceId],
+    supports,
+    opposes,
+    strength,
+    quality_weight: 0.8,
+    date: "2026-06-01",
+    stance,
+  }));
 
   return {
     analysis_id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
@@ -137,29 +184,11 @@ function createContractPayload(prompt, requestId) {
       end: "2028-06-18T00:00:00.000Z",
     },
     assumptions: [],
-    sources: Array.from({ length: 8 }, (_, index) => ({
-      id: `src_${String(index + 1).padStart(3, "0")}`,
-      title: `Evidence source ${index + 1}`,
-      url: `https://source${index + 1}.example/report`,
-      canonical_url: `https://source${index + 1}.example/report`,
-      domain: `source${index + 1}.example`,
-      description: `A source describing deployment evidence ${index + 1}.`,
-      extra_snippets: [],
-      published_or_discovered_date: "2026-06-01",
-      retrieved_at: "2026-06-18T12:00:00.000Z",
-      quality_score: 0.82 - index * 0.02,
-    })),
-    evidence_items: Array.from({ length: 12 }, (_, index) => ({
-      id: `ev_${String(index + 1).padStart(3, "0")}`,
-      claim: `Observed evidence statement ${index + 1}`,
-      source_ids: [`src_${String((index % 8) + 1).padStart(3, "0")}`],
-      supports: [index % 2 === 0 ? "out_001" : "out_002"],
-      opposes: [index % 3 === 0 ? "out_003" : "out_004"],
-      strength: 0.7,
-      quality_weight: 0.8,
-      date: "2026-06-01",
-      stance: index % 3 === 0 ? "opposing" : "supporting",
-    })),
+    research_provider: "minimax_native",
+    research_summary: "MiniMax native research found eight decision-relevant sources.",
+    coverage_gaps: [],
+    sources,
+    evidence_items: evidenceItems,
     contradictions: [
       {
         topic: "Interconnection constraints",

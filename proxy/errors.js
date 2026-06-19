@@ -51,34 +51,6 @@ export function mapError(error) {
       error,
     );
   }
-  if (error?.provider === "brave") {
-    if ([401, 403].includes(error.status)) {
-      return new AppError(
-        "E_BRAVE_AUTH",
-        "Brave Search rejected the configured credential.",
-        502,
-        "check_provider_keys",
-        error,
-      );
-    }
-    if (error.status === 429) {
-      return new AppError(
-        "E_BRAVE_QUOTA",
-        "Brave Search quota is exhausted or temporarily limited.",
-        503,
-        "retry_later",
-        error,
-      );
-    }
-    return new AppError(
-      "E_BRAVE_UPSTREAM",
-      "Brave Search was unavailable during research.",
-      502,
-      "retry",
-      error,
-    );
-  }
-
   return new AppError(
     "E_INTERNAL",
     "The proxy could not complete the request.",

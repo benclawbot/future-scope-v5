@@ -22,6 +22,27 @@ test("renders all six live analysis views", async ({ page }) => {
 
   await expect(page.locator("[data-outcome-id]")).toHaveCount(4);
   await expect(page.getByText("8", { exact: true }).first()).toBeVisible();
+  await expect(page.locator(".source-mix-card")).toBeVisible();
+  await expect(page.getByRole("img", { name: "Source mix: 8 sources" })).toBeVisible();
+  await expect(page.locator(".source-mix-segment")).toHaveCount(4);
+
+  const factorColors = await page.locator("[data-factor-id]").evaluateAll((rows) =>
+    Object.fromEntries(
+      rows.map((row) => [row.dataset.factorId, row.style.getPropertyValue("--factor-color")]),
+    ),
+  );
+  expect(factorColors).toEqual({
+    market_momentum: "#8b5cf6",
+    execution_quality: "#38bdf8",
+    competitive_pressure: "#fb7185",
+    regulatory_pressure: "#f59e0b",
+    resource_availability: "#34d399",
+    technology_readiness: "#22d3ee",
+  });
+  await expect(page.getByLabel("Market Momentum")).toHaveCSS(
+    "background-image",
+    /linear-gradient/,
+  );
 
   await page.getByRole("tab", { name: "Ranked" }).click();
   await expect(page.getByRole("heading", { name: "Ranked outcomes" })).toBeVisible();
@@ -30,10 +51,24 @@ test("renders all six live analysis views", async ({ page }) => {
   await page.getByRole("tab", { name: "Tree" }).click();
   await expect(page.getByRole("heading", { name: "Scenario tree" })).toBeVisible();
   await expect(page.locator("[data-tree-outcome]")).toHaveCount(4);
+  await expect(page.locator(".tree-links")).toBeVisible();
+  await expect(page.locator('.tree-link[data-link-role="root-branch"]')).toHaveCount(3);
+  await expect(page.locator('.tree-link[data-link-role="branch-outcome"]')).toHaveCount(4);
+  await expect(page.locator(".tree-port")).toHaveCount(6);
+  const treePaths = await page.locator(".tree-link").evaluateAll((paths) =>
+    paths.map((path) => ({
+      d: path.getAttribute("d"),
+      marker: path.getAttribute("marker-end"),
+    })),
+  );
+  expect(treePaths.every(({ d }) => d?.includes(" H ") && d.includes(" C "))).toBe(true);
+  expect(treePaths.every(({ marker }) => marker?.startsWith("url(#tree-arrow-"))).toBe(true);
 
   await page.getByRole("tab", { name: "Timeline" }).click();
   await expect(page.getByRole("heading", { name: "Evidence timeline" })).toBeVisible();
   await expect(page.getByText("Policy review milestone")).toBeVisible();
+  await expect(page.locator(".timeline-milestone")).toHaveCount(1);
+  await expect(page.locator(".timeline-pin")).toHaveCount(1);
 
   await page.getByRole("tab", { name: "Matrix" }).click();
   await expect(page.getByRole("heading", { name: "Outcome impact matrix" })).toBeVisible();
@@ -70,6 +105,21 @@ test("recalculates deterministically from sliders and user events", async ({ pag
   });
   await eventCard.getByRole("checkbox").uncheck();
   await expect(eventCard).toContainText("Inactive");
+  await page.getByRole("tab", { name: "Timeline" }).click();
+  const timelineEvent = page.locator("[data-timeline-user-event]").filter({
+    hasText: "A major policy incentive passes",
+  });
+  await expect(timelineEvent).toHaveAttribute("data-draggable", "true");
+  const beforeDecay = await timelineEvent.getAttribute("data-time-decay");
+  const box = await timelineEvent.boundingBox();
+  expect(box).not.toBeNull();
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(box.x - 80, box.y + box.height / 2, { steps: 8 });
+  await page.mouse.up();
+  await expect(timelineEvent).not.toHaveAttribute("data-time-decay", beforeDecay);
+
+  await page.getByRole("tab", { name: "Simulation" }).click();
   await eventCard.getByRole("button", { name: "Delete event" }).click();
   await expect(eventCard).toHaveCount(0);
 });
@@ -85,9 +135,33 @@ test("supports keyboard tab navigation and exposes sourced evidence", async ({ p
     "true",
   );
 
-  await expect(page.getByRole("link", { name: "Evidence source 1" })).toHaveAttribute(
-    "href",
-    "https://source1.example/report",
-  );
+  await expect(
+    page.getByText(
+      "Utility procurement plans in the research set schedule additional grid-scale battery capacity through 2028.",
+    ),
+  ).toBeVisible();
+  await expect(page.getByText("Supporting statement", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("Official source", { exact: true }).first()).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Utility storage procurement outlook" }).first(),
+  ).toHaveAttribute("href", "https://source1.example/report");
+
+  await page.getByRole("button", { name: "Opposing" }).click();
+  await expect(
+    page.getByText(
+      "Interconnection queues in several regions could delay otherwise financeable storage projects.",
+    ),
+  ).toBeVisible();
+  await expect(page.getByText("Opposing statement", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("Regulatory source", { exact: true }).first()).toBeVisible();
+
+  await page.getByRole("button", { name: "Neutral" }).click();
+  await expect(
+    page.getByText(
+      "Current regional deployment remains uneven, so the national acceleration signal is not yet uniform.",
+    ),
+  ).toBeVisible();
+  await expect(page.getByText("Neutral statement", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("News source", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("Interconnection constraints")).toBeVisible();
 });

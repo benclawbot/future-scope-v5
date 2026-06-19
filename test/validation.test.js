@@ -3,8 +3,8 @@ import {
   FACTOR_IDS,
   validateAnalyzeInput,
   validateEventImpactInput,
-  validateSearchInput,
 } from "../proxy/validation.js";
+import { validateA1, validateA2 } from "../proxy/schemas.js";
 
 describe("validateAnalyzeInput", () => {
   test("normalizes a valid request", () => {
@@ -28,26 +28,6 @@ describe("validateAnalyzeInput", () => {
   });
 });
 
-describe("validateSearchInput", () => {
-  test.each(["pd", "pw", "pm", "py", "2026-01-01to2026-06-18", null])(
-    "accepts documented freshness %s",
-    (freshness) => {
-      expect(validateSearchInput({ query: "forecast evidence", freshness }).freshness).toBe(
-        freshness,
-      );
-    },
-  );
-
-  test.each(["all", "2026-01-01..2026-06-18", "yesterday"])(
-    "rejects unsupported freshness %s",
-    (freshness) => {
-      expect(() => validateSearchInput({ query: "forecast evidence", freshness })).toThrow(
-        /freshness/i,
-      );
-    },
-  );
-});
-
 describe("validateEventImpactInput", () => {
   test("requires a bounded event label and payload summary", () => {
     expect(
@@ -65,5 +45,109 @@ describe("validateEventImpactInput", () => {
         },
       }).event_label,
     ).toBe("A regulator publishes a final rule");
+  });
+});
+
+describe("MiniMax research schemas", () => {
+  test("validates distinct A1 research tasks", () => {
+    const value = validateA1(
+      {
+        research_tasks: [
+          {
+            id: "task_001",
+            purpose: "recent_developments",
+            query: "Find recent official announcements.",
+            freshness: "recent",
+            importance: 0.9,
+          },
+          {
+            id: "task_002",
+            purpose: "base_rates",
+            query: "Find historical base rates.",
+            freshness: "historical",
+            importance: 0.8,
+          },
+        ],
+      },
+      2,
+    );
+
+    expect(value.research_tasks).toHaveLength(2);
+  });
+
+  test("rejects duplicate A1 task ids and invalid purposes", () => {
+    expect(() =>
+      validateA1(
+        {
+          research_tasks: [
+            {
+              id: "task_001",
+              purpose: "unsupported",
+              query: "Find evidence.",
+              freshness: "any",
+              importance: 0.5,
+            },
+            {
+              id: "task_001",
+              purpose: "base_rates",
+              query: "Find base rates.",
+              freshness: "historical",
+              importance: 0.5,
+            },
+          ],
+        },
+        2,
+      ),
+    ).toThrow(/purpose|unique/i);
+  });
+
+  test("validates the A2 native research source contract", () => {
+    const value = validateA2(
+      {
+        sources: [
+          {
+            id: "src_001",
+            title: "Official release",
+            url: "https://example.com/release",
+            domain: "example.com",
+            description: "Primary announcement",
+            extra_snippets: ["Additional detail"],
+            published_or_discovered_date: "2026-06-18",
+            retrieved_at: "2026-06-18T12:00:00.000Z",
+            source_type: "official",
+          },
+        ],
+        research_summary: "One primary source was found.",
+        coverage_gaps: [],
+      },
+      1,
+    );
+
+    expect(value.sources[0].source_type).toBe("official");
+  });
+
+  test("rejects A2 sources without valid URLs or approved source types", () => {
+    expect(() =>
+      validateA2(
+        {
+          sources: [
+            {
+              id: "src_001",
+              title: "Invented citation",
+              url: "not-a-url",
+              domain: "example.com",
+              description: "Invalid source",
+              extra_snippets: [],
+              published_or_discovered_date: null,
+              retrieved_at: "2026-06-18T12:00:00.000Z",
+              source_type: "social",
+            },
+          ],
+          research_summary: "Invalid.",
+          coverage_gaps: [],
+        },
+        1,
+      ),
+    ).toThrow(/url|source_type/i);
   });
 });

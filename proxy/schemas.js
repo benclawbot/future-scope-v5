@@ -10,6 +10,27 @@ const DOMAINS = new Set([
   "legal",
   "other",
 ]);
+const RESEARCH_PURPOSES = new Set([
+  "recent_developments",
+  "primary_sources",
+  "base_rates",
+  "constraints",
+  "alternatives",
+  "contradictions",
+  "expert_analysis",
+]);
+const RESEARCH_FRESHNESS = new Set(["recent", "historical", "any"]);
+export const SOURCE_TYPES = new Set([
+  "official",
+  "regulatory",
+  "research",
+  "news",
+  "financial",
+  "expert",
+  "blog",
+  "forum",
+  "other",
+]);
 
 export function validateA0(value) {
   const data = requireRecord(value, "A0 response");
@@ -24,19 +45,95 @@ export function validateA0(value) {
   return data;
 }
 
-export function validateA1(value, minimumQueries) {
+export function validateA1(value, minimumTasks) {
   const data = requireRecord(value, "A1 response");
   if (
-    !Array.isArray(data.queries) ||
-    data.queries.length < minimumQueries ||
-    data.queries.length > 15
+    !Array.isArray(data.research_tasks) ||
+    data.research_tasks.length < minimumTasks ||
+    data.research_tasks.length > 15
   ) {
-    throw new Error(`A1 requires ${minimumQueries} to 15 queries`);
+    throw new Error(`A1 requires ${minimumTasks} to 15 research_tasks`);
   }
-  data.queries = [...new Set(data.queries.map((query) => requireString(query, "A1 query")))];
-  if (data.queries.length < minimumQueries) {
-    throw new Error(`A1 requires ${minimumQueries} distinct queries`);
+
+  const ids = new Set();
+  const queries = new Set();
+  for (const taskValue of data.research_tasks) {
+    const task = requireRecord(taskValue, "A1 research task");
+    const id = requireString(task.id, "A1 research task id");
+    if (!/^task_[A-Za-z0-9_-]{1,64}$/.test(id)) {
+      throw new Error("A1 research task id is invalid");
+    }
+    if (ids.has(id)) throw new Error("A1 research task ids must be unique");
+    ids.add(id);
+
+    if (!RESEARCH_PURPOSES.has(task.purpose)) {
+      throw new Error("A1 research task purpose is invalid");
+    }
+    const query = requireString(task.query, "A1 research task query");
+    if (query.length > 400) throw new Error("A1 research task query is too long");
+    const normalizedQuery = query.toLowerCase();
+    if (queries.has(normalizedQuery)) {
+      throw new Error("A1 research task queries must be unique");
+    }
+    queries.add(normalizedQuery);
+    if (!RESEARCH_FRESHNESS.has(task.freshness)) {
+      throw new Error("A1 research task freshness is invalid");
+    }
+    requireUnit(task.importance, "A1 research task importance");
   }
+  return data;
+}
+
+export function validateA2(value, minimumSources) {
+  const data = requireRecord(value, "A2 response");
+  if (
+    !Array.isArray(data.sources) ||
+    data.sources.length < minimumSources ||
+    data.sources.length > 50
+  ) {
+    throw new Error(`A2 requires ${minimumSources} to 50 sources`);
+  }
+
+  const ids = new Set();
+  for (const sourceValue of data.sources) {
+    const source = requireRecord(sourceValue, "A2 source");
+    const id = requireString(source.id, "A2 source id");
+    if (ids.has(id)) throw new Error("A2 source ids must be unique");
+    ids.add(id);
+    requireString(source.title, "A2 source title");
+    const rawUrl = requireString(source.url, "A2 source url");
+    let url;
+    try {
+      url = new URL(rawUrl);
+    } catch {
+      throw new Error("A2 source url must be a valid URL");
+    }
+    if (url.protocol !== "https:") throw new Error("A2 source url must use HTTPS");
+    requireString(source.domain, "A2 source domain");
+    requireString(source.description, "A2 source description");
+    if (!Array.isArray(source.extra_snippets) || source.extra_snippets.length > 8) {
+      throw new Error("A2 source extra_snippets must be an array with at most 8 entries");
+    }
+    source.extra_snippets.forEach((snippet) =>
+      requireString(snippet, "A2 source extra snippet"),
+    );
+    if (source.published_or_discovered_date !== null) {
+      requireDate(
+        source.published_or_discovered_date,
+        "A2 source published_or_discovered_date",
+      );
+    }
+    requireDate(source.retrieved_at, "A2 source retrieved_at");
+    if (!SOURCE_TYPES.has(source.source_type)) {
+      throw new Error("A2 source source_type is invalid");
+    }
+  }
+
+  requireString(data.research_summary, "A2 research_summary");
+  if (!Array.isArray(data.coverage_gaps)) {
+    throw new Error("A2 coverage_gaps must be an array");
+  }
+  data.coverage_gaps.forEach((gap) => requireString(gap, "A2 coverage gap"));
   return data;
 }
 

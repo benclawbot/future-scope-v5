@@ -78,7 +78,7 @@ export function preflightResponse(requestId, origin) {
   headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   headers.set(
     "Access-Control-Allow-Headers",
-    "Content-Type, X-App-Token, X-Request-Id, X-Dev-Brave-Key, X-Dev-Minimax-Key",
+    "Content-Type, X-App-Token, X-Request-Id, X-Dev-Minimax-Key",
   );
   headers.set("Access-Control-Max-Age", "600");
   headers.delete("Content-Type");

@@ -7,6 +7,10 @@ test("tests the proxy and persists only versioned preferences", async ({ page })
   const dialog = page.getByRole("dialog", { name: "Settings" });
   await expect(dialog).toBeVisible();
   await expect(page.getByLabel("Theme")).toBeFocused();
+  await expect(dialog.getByLabel("Interface density")).toHaveCount(0);
+  await expect(dialog.getByText("Advanced development options")).toHaveCount(0);
+  await expect(dialog.getByLabel("MiniMax key override")).toHaveCount(0);
+  await expect(dialog.getByText("anonymous operational telemetry")).toHaveCount(0);
 
   await page.getByLabel("Theme").selectOption("light");
   await page.getByLabel("Backend proxy URL").fill("http://127.0.0.1:4173");
@@ -14,7 +18,7 @@ test("tests the proxy and persists only versioned preferences", async ({ page })
   await page.getByRole("button", { name: "Save and test" }).click();
 
   await expect(page.getByRole("status", { name: "Connection status" })).toContainText(
-    "Connected",
+    "Research provider: MiniMax native",
   );
   await page.getByRole("button", { name: "Close settings" }).click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
