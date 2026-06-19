@@ -10,7 +10,7 @@ const policy = extract(
   "CSP meta policy",
 );
 
-const required = [hash(style), hash(script)];
+const required = [hash(script)];
 const missing = required.filter((value) => !policy.includes(`'${value}'`));
 const scriptDirective =
   policy

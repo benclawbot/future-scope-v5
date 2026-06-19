@@ -9,7 +9,7 @@
     <meta http-equiv="Expires" content="0" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self' 'sha256-tkco/reOBtu9DFaR3CnLtEBMBaIIqZh7Hn+SYFbEn7o='; style-src 'self' 'unsafe-inline' 'sha256-+mLhNUQ31y7pIFeEC9ajkTS381d7oBmqVCgYMfEuNeQ='; connect-src 'self' https: http://127.0.0.1:* http://localhost:*; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; worker-src 'none'"
+      content="default-src 'self'; script-src 'self' 'sha256-LNKsKF8qSlgwQNsCbUOK3e6B2mImDh0EQUtPTSV6PtU='; style-src 'self' 'unsafe-inline'; connect-src 'self' https: http://127.0.0.1:* http://localhost:*; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; worker-src 'self' blob:"
     />
     <title>Future•Scope — Live probability intelligence</title>
     <style id="app-styles">
@@ -2037,6 +2037,7 @@
     <div class="toast-region" id="toast-region" aria-live="polite"></div>
 
     <script src="vendor/jspdf.umd.min.js"></script>
+    <script src="vendor/html2canvas.min.js"></script>
     <script id="app-script">
       (() => {
         "use strict";
@@ -3831,752 +3832,606 @@
 
         function exportAnalysis() {
           if (!state.analysis) return;
-          if (typeof window.jspdf === "undefined" || !window.jspdf.jsPDF) {
+          if (
+            typeof window.jspdf === "undefined" ||
+            !window.jspdf.jsPDF ||
+            typeof window.html2canvas !== "function"
+          ) {
             showError({
               code: "E_INTERNAL",
-              message: "PDF library failed to load. Refresh the page and try again.",
+              message: "PDF export libraries failed to load. Refresh the page and try again.",
               action: null,
               request_id: null,
             });
             return;
           }
-          try {
-            const doc = buildAnalysisPdf(state.analysis, state.factors, state.userEvents);
-            const filename = `future-scope-${state.analysis.analysis_id}.pdf`;
-            doc.save(filename);
-          } catch (error) {
-            console.error("[exportAnalysis]", error);
-            showError({
-              code: "E_INTERNAL",
-              message: `PDF export failed: ${error?.message ?? "unknown"}. See browser console for details.`,
-              action: null,
-              request_id: null,
-            });
-          }
+          // Force the user's selected theme so the PDF matches what they
+          // see. The PDF captures the live DOM, so the on-screen theme is
+          // the right one to use.
+          const originalTab = state.activeTab;
+          const originalButtonDisabled = elements.exportButton.disabled;
+          elements.exportButton.disabled = true;
+          showToast("Building PDF report…");
+          // Allow the toast to render before we start the heavy work.
+          setTimeout(async () => {
+            try {
+              const doc = await buildAnalysisPdf({
+                analysis: state.analysis,
+                factors: state.factors,
+                userEvents: state.userEvents,
+                baselineProbabilities: state.baselineProbabilities,
+                theme: state.prefs.theme,
+                activeTab: state.activeTab,
+                prompt: elements.prompt.value,
+                resolvedQuestion: state.analysis.resolved_question,
+              });
+              const filename = `future-scope-${state.analysis.analysis_id}.pdf`;
+              doc.save(filename);
+              showToast("PDF report downloaded.");
+            } catch (error) {
+              console.error("[exportAnalysis]", error);
+              showError({
+                code: "E_INTERNAL",
+                message: `PDF export failed: ${error?.message ?? "unknown"}. See browser console for details.`,
+                action: null,
+                request_id: null,
+              });
+            } finally {
+              // Restore the tab the user was on.
+              selectTab(originalTab);
+              elements.exportButton.disabled = originalButtonDisabled;
+            }
+          }, 30);
         }
 
-        // PDF report builder. Walks the same data structures the on-screen
-        // renderers walk (factors, outcomes, evidence, sources, contradictions,
-        // research events, user events) and lays them out across landscape A4
-        // pages. Every section is scaled to the printable page width using
-        // jsPDF's splitTextToSize, so titles and descriptions never overflow.
-        function buildAnalysisPdf(analysis, factorValues, userEvents) {
+        // Build a PDF report by walking the same on-screen renderers the
+        // user is looking at and rasterizing each tab pane with
+        // html2canvas. This guarantees the PDF is a faithful snapshot of
+        // the live light-theme view: same colors, same layout, same
+        // typography, no risk of data being dropped or styled wrong.
+        async function buildAnalysisPdf(ctx) {
           const { jsPDF } = window.jspdf;
+          const analysis = ctx.analysis;
           const doc = new jsPDF({ orientation: "landscape", unit: "pt", format: "a4" });
           const pageW = doc.internal.pageSize.getWidth();
           const pageH = doc.internal.pageSize.getHeight();
-          const marginX = 36;
-          const marginY = 36;
-          const innerW = pageW - marginX * 2;
 
-          // Resolve the same hex colors the on-screen renderers use.
-          const factorHex = {
-            market_momentum: "#8b5cf6",
-            execution_quality: "#38bdf8",
-            competitive_pressure: "#fb7185",
-            regulatory_pressure: "#f59e0b",
-            resource_availability: "#34d399",
-            technology_readiness: "#22d3ee",
-            ...FACTOR_COLORS,
-          };
-          const sourceHex = {
-            official: "#34d399",
-            regulatory: "#f59e0b",
-            research: "#22d3ee",
-            news: "#38bdf8",
-            financial: "#8b5cf6",
-            expert: "#a78bfa",
-            blog: "#fb7185",
-            forum: "#f472b6",
-            other: "#94a3b8",
-            ...SOURCE_TYPE_COLORS,
-          };
-          // outcomeColor() returns a CSS var() string on screen; the PDF needs
-          // a hex. Mirror the on-screen mapping.
-          const outcomeHex = ["#8b5cf6", "#38bdf8", "#22d3ee", "#f59e0b", "#fb7185"];
-
-          const text = {
-            title: 22,
-            heading: 15,
-            subhead: 12,
-            body: 10,
-            small: 8.5,
-          };
-          const palette = {
-            ink: "#10172a",
-            muted: "#445170",
-            rule: "#94a3b8",
-            accent: "#8b5cf6",
-            pageBg: "#f4f6fb",
+          // Sanitize any non-WinAnsi characters that jsPDF's default
+          // Helvetica font can't render. (Δ, →, ·, —, …, ', ", • etc.)
+          // We swap them for ASCII or visual equivalents so titles and
+          // descriptions always show up.
+          const sanitize = (input) => {
+            if (input == null) return "";
+            return String(input)
+              .replaceAll("→", "->")
+              .replaceAll("·", "-")
+              .replaceAll("Δ", "Delta")
+              .replaceAll("—", "-")
+              .replaceAll("–", "-")
+              .replaceAll("…", "...")
+              .replaceAll("•", "*")
+              .replaceAll("“", '"')
+              .replaceAll("”", '"')
+              .replaceAll("‘", "'")
+              .replaceAll("’", "'")
+              .replaceAll(" ", " ");
           };
 
-          // -- helpers ---------------------------------------------------
-          function ensureSpace(needed) {
-            if (state.cursorY + needed > pageH - marginY - 24) {
-              addPage();
+
+          // Capture a DOM element to a PNG data URL via html2canvas.
+          // We wait one frame so the tab's render finishes (and the
+          // tree-link pass has drawn its SVG) before snapping.
+          //
+          // html2canvas 1.4.1 doesn't support CSS color-mix(). The app
+          // uses color-mix in a handful of decorative shadows and
+          // borders (factor controls, evidence cards, outcome orbs,
+          // matrix bubbles, timeline cards). We patch the *stylesheet*
+          // at capture time by rewriting every color-mix(...) call to
+          // a computed rgba() that uses the same CSS variables already
+          // declared on each element. This keeps the on-screen look
+          // intact in the captured pixels without modifying the
+          // visible DOM.
+          const captureElement = async (element) => {
+            // Allow any pending rAF (tree link drawing) to flush.
+            await new Promise((resolve) => requestAnimationFrame(() => resolve()));
+            await new Promise((resolve) => requestAnimationFrame(() => resolve()));
+            // Build a CSS-variable resolver: read every named
+            // --foo variable off :root and every element's inline
+            // style, so we can replace var(--foo) in the stylesheet
+            // with the resolved hex.
+            const resolveVar = (() => {
+              const cache = new Map();
+              const rootStyle = window.getComputedStyle(document.documentElement);
+              return (name) => {
+                if (cache.has(name)) return cache.get(name);
+                // 1. :root variable
+                const v = rootStyle.getPropertyValue(name).trim();
+                if (v) {
+                  cache.set(name, v);
+                  return v;
+                }
+                cache.set(name, "");
+                return "";
+              };
+            })();
+            // Replace every color-mix(in srgb, A PCT%, B PCT%) in a CSS
+            // text with the computed rgba() string.
+            const rewriteColorMix = (cssText) =>
+              cssText.replace(
+                /color-mix\(\s*in\s+srgb\s*,\s*([^()]*(?:\([^)]*\)[^()]*)*)\s*\)/gi,
+                (_, inner) => {
+                  const parts = inner.split(/\s*,\s*/);
+                  if (parts.length < 2) return "rgba(0,0,0,0)";
+                  const parse = (s) => {
+                    const tm = s.trim().match(
+                      /^([^\s]+(?:\s+[^\s]+)*?)\s+(\d+(?:\.\d+)?)%$/,
+                    );
+                    if (!tm) return { color: s.trim(), pct: 50 };
+                    return { color: tm[1].trim(), pct: Number(tm[2]) };
+                  };
+                  const a = parse(parts[0]);
+                  const b = parse(parts[1]);
+                  // Resolve var() in each side.
+                  const resolveSide = (color) =>
+                    color.replace(/var\(\s*(--[\w-]+)\s*\)/g, (_, name) => {
+                      const v = resolveVar(name);
+                      return v || "transparent";
+                    });
+                  const aColor = resolveSide(a.color);
+                  const bColor = resolveSide(b.color);
+                  const pctA = Math.max(0, Math.min(100, a.pct)) / 100;
+                  const pctB = 1 - pctA;
+                  // "transparent" => rgba(0,0,0,0)
+                  const aIsTransparent = aColor === "transparent";
+                  const bIsTransparent = bColor === "transparent";
+                  const aHex = aIsTransparent ? null : toHex(aColor);
+                  const bHex = bIsTransparent ? null : toHex(bColor);
+                  const aRgb = aHex ? hexToRgb(aHex) : { r: 0, g: 0, b: 0, a: 0 };
+                  const bRgb = bHex ? hexToRgb(bHex) : { r: 0, g: 0, b: 0, a: 0 };
+                  const r = Math.round(aRgb.r * pctA + bRgb.r * pctB);
+                  const g = Math.round(aRgb.g * pctA + bRgb.g * pctB);
+                  const bl = Math.round(aRgb.b * pctA + bRgb.b * pctB);
+                  const aA = aIsTransparent ? 0 : 1;
+                  const bA = bIsTransparent ? 0 : 1;
+                  // color-mix with a transparent side is alpha mix
+                  // (per the spec). Approximate by interpolating alpha.
+                  let alpha;
+                  if (aIsTransparent && !bIsTransparent) {
+                    alpha = pctB;
+                  } else if (!aIsTransparent && bIsTransparent) {
+                    alpha = pctA;
+                  } else if (aIsTransparent && bIsTransparent) {
+                    alpha = 0;
+                  } else {
+                    alpha = aA * pctA + bA * pctB;
+                  }
+                  return `rgba(${r},${g},${bl},${alpha.toFixed(3)})`;
+                },
+              );
+            // Find the app's main <style> block and patch it for the
+            // duration of the capture. We add a new <style> after it
+            // with the rewritten rules so original rules (which the
+            // browser will still try to parse) sit alongside.
+            const appStyle = document.getElementById("app-styles");
+            const originalCss = appStyle ? appStyle.textContent : "";
+            const patchedCss = rewriteColorMix(originalCss);
+            const patchStyle = document.createElement("style");
+            patchStyle.setAttribute("data-pdf-override", "true");
+            patchStyle.textContent = patchedCss;
+            document.head.appendChild(patchStyle);
+            let canvas;
+            try {
+              canvas = await window.html2canvas(element, {
+                backgroundColor: getComputedStyle(document.body)
+                  .getPropertyValue("--bg-0")
+                  .trim() || "#eef3fb",
+                scale: 1,
+                useCORS: true,
+                logging: false,
+                onclone: (clonedDoc) => {
+                  // Mirror the patch into the cloned document so
+                  // html2canvas reads the rewritten rules when it
+                  // walks the cloned tree.
+                  const clonedApp = clonedDoc.getElementById("app-styles");
+                  if (clonedApp) {
+                    clonedApp.textContent = patchedCss;
+                  }
+                  const body = clonedDoc.body;
+                  if (body) {
+                    body.style.backgroundColor = getComputedStyle(document.body)
+                      .getPropertyValue("--bg-0")
+                      .trim() || "#eef3fb";
+                  }
+                },
+              });
+              // JPEG at 0.85 keeps the on-screen look while cutting the
+              // PDF size by ~10x. PNG is fine for fidelity but the
+              // captured workspace is large and we don't need lossless
+              // for screenshots of vector UI.
+              return canvas.toDataURL("image/jpeg", 0.85);
+            } finally {
+              patchStyle.remove();
             }
-          }
-          function addPage() {
-            drawPageHeader();
+          };
+          // Helpers for color-mix rewriting.
+          const toHex = (color) => {
+            // Use a temporary element to resolve any CSS color string
+            // (named, hex, rgb(), hsl(), or var()) to rgb().
+            const probe = document.createElement("span");
+            probe.style.color = color;
+            probe.style.display = "none";
+            document.body.appendChild(probe);
+            const c = window.getComputedStyle(probe).color;
+            document.body.removeChild(probe);
+            const m = c.match(/rgba?\(([^)]+)\)/);
+            if (!m) return "#000000";
+            const [r, g, b] = m[1].split(",").map((v) => Number(v.trim()));
+            return (
+              "#" +
+              [r, g, b]
+                .map((v) => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, "0"))
+                .join("")
+            );
+          };
+          const hexToRgb = (hex) => {
+            const h = hex.replace("#", "");
+            const v =
+              h.length === 3
+                ? h
+                    .split("")
+                    .map((c) => c + c)
+                    .join("")
+                : h;
+            return {
+              r: parseInt(v.slice(0, 2), 16),
+              g: parseInt(v.slice(2, 4), 16),
+              b: parseInt(v.slice(4, 6), 16),
+              a: 1,
+            };
+          };
+
+          // Add a captured image to a fresh page, scaling it to fit the
+          // printable area with a small margin. Returns when the page is
+          // fully drawn.
+          const addImagePage = (dataUrl, label) => {
             doc.addPage();
-            state.pageNumber += 1;
-            state.cursorY = marginY + 28;
-            drawPageHeader();
-          }
-          function drawPageHeader() {
-            doc.setFillColor(palette.pageBg);
+            const props = doc.getImageProperties(dataUrl);
+            const maxW = pageW - 36 * 2;
+            const maxH = pageH - 36 * 2 - 24; // leave room for header
+            const ratio = Math.min(maxW / props.width, maxH / props.height);
+            const drawW = props.width * ratio;
+            const drawH = props.height * ratio;
+            const drawX = (pageW - drawW) / 2;
+            const drawY = 36 + 24;
+            // Header strip
+            doc.setFillColor("#eef3fb");
             doc.rect(0, 0, pageW, 22, "F");
             doc.setFont("helvetica", "bold");
-            doc.setFontSize(text.small);
-            doc.setTextColor(palette.ink);
-            doc.text("Future·Scope  ·  Forecast Report", marginX, 14);
+            doc.setFontSize(8.5);
+            doc.setTextColor("#10172a");
+            doc.text("Future-Scope - Forecast Report", 36, 14);
             doc.setFont("helvetica", "normal");
-            doc.setTextColor(palette.muted);
-            const right = `Analysis ${analysis.analysis_id}  ·  Page ${state.pageNumber}`;
-            doc.text(right, pageW - marginX, 14, { align: "right" });
-            // Bottom rule of the header strip
-            doc.setDrawColor(palette.rule);
-            doc.setLineWidth(0.4);
-            doc.line(marginX, 22, pageW - marginX, 22);
-          }
-          function drawH1(title, subtitle) {
-            ensureSpace(38);
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(text.title);
-            doc.setTextColor(palette.ink);
-            doc.text(title, marginX, state.cursorY);
-            state.cursorY += 18;
-            if (subtitle) {
-              doc.setFont("helvetica", "normal");
-              doc.setFontSize(text.body);
-              doc.setTextColor(palette.muted);
-              const lines = doc.splitTextToSize(subtitle, innerW);
-              doc.text(lines, marginX, state.cursorY);
-              state.cursorY += lines.length * 12 + 4;
-            }
-            doc.setDrawColor(palette.rule);
-            doc.setLineWidth(0.5);
-            doc.line(marginX, state.cursorY, pageW - marginX, state.cursorY);
-            state.cursorY += 12;
-          }
-          function drawH2(title) {
-            ensureSpace(20);
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(text.heading);
-            doc.setTextColor(palette.ink);
-            doc.text(title, marginX, state.cursorY);
-            state.cursorY += 14;
-          }
-          function drawParagraph(value, fontSize = text.body) {
-            if (!value) return;
-            doc.setFont("helvetica", "normal");
-            doc.setFontSize(fontSize);
-            doc.setTextColor(palette.ink);
-            const lines = doc.splitTextToSize(String(value), innerW);
-            ensureSpace(lines.length * (fontSize + 2) + 4);
-            doc.text(lines, marginX, state.cursorY);
-            state.cursorY += lines.length * (fontSize + 2) + 4;
-          }
-          function drawRule() {
-            ensureSpace(8);
-            doc.setDrawColor("#d8def0");
-            doc.setLineWidth(0.4);
-            doc.line(marginX, state.cursorY, pageW - marginX, state.cursorY);
-            state.cursorY += 8;
-          }
-          // Draw a 2D array as a table. Columns auto-scale so the total
-          // never exceeds innerW. First row is treated as the header.
-          function drawTable(columns, rows) {
-            if (rows.length === 0) {
-              drawParagraph("No data.");
-              return;
-            }
-            // Proportional column widths from the column specs; clamp to
-            // the available inner width.
-            const rawTotal = columns.reduce((sum, col) => sum + (col.weight ?? 1), 0);
-            const colWidths = columns.map(
-              (col) => ((col.weight ?? 1) / rawTotal) * innerW,
-            );
-            const rowH = 16;
-            const headerH = 18;
-
-            function renderHeader() {
-              ensureSpace(headerH);
-              doc.setFillColor("#eef2fb");
-              doc.rect(marginX, state.cursorY - 11, innerW, headerH, "F");
-              doc.setFont("helvetica", "bold");
-              doc.setFontSize(text.small);
-              doc.setTextColor(palette.ink);
-              let x = marginX + 4;
-              columns.forEach((col, index) => {
-                doc.text(col.label, x, state.cursorY + 1);
-                x += colWidths[index];
-              });
-              state.cursorY += headerH;
-            }
-            renderHeader();
-            doc.setDrawColor("#d8def0");
-            doc.setLineWidth(0.3);
-
-            rows.forEach((row) => {
-              // Wrap every cell so the row height adapts to its tallest cell.
-              const wrapped = columns.map((col, index) => {
-                const value = row[index];
-                const valueText = value == null ? "" : String(value);
-                return doc.splitTextToSize(valueText, colWidths[index] - 8);
-              });
-              const lineCount = wrapped.reduce(
-                (max, lines) => Math.max(max, lines.length),
-                1,
-              );
-              const thisRowH = lineCount * 11 + 6;
-              if (state.cursorY + thisRowH > pageH - marginY - 12) {
-                addPage();
-                renderHeader();
-              }
-              let x = marginX + 4;
-              doc.setFont("helvetica", "normal");
-              doc.setFontSize(text.small);
-              doc.setTextColor(palette.ink);
-              columns.forEach((col, index) => {
-                if (col.color) {
-                  // Render the first line with the cell's color, then
-                  // subsequent lines inherit the default ink color.
-                  const first = wrapped[index][0];
-                  doc.setTextColor(col.color);
-                  doc.text(first, x, state.cursorY);
-                  doc.setTextColor(palette.ink);
-                  if (wrapped[index].length > 1) {
-                    doc.text(wrapped[index].slice(1), x, state.cursorY + 11);
-                  }
-                } else {
-                  doc.text(wrapped[index], x, state.cursorY);
-                }
-                x += colWidths[index];
-              });
-              // Bottom row rule.
-              doc.setDrawColor("#eef0f7");
-              doc.line(marginX, state.cursorY + thisRowH - 4, pageW - marginX, state.cursorY + thisRowH - 4);
-              state.cursorY += thisRowH;
-            });
-            state.cursorY += 6;
-          }
-          function drawKeyValue(label, value, color) {
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(text.small);
-            doc.setTextColor(palette.muted);
-            doc.text(label, marginX, state.cursorY);
-            doc.setFont("helvetica", "normal");
-            doc.setTextColor(color ?? palette.ink);
-            const valueLines = doc.splitTextToSize(String(value ?? "—"), innerW - 200);
-            doc.text(valueLines, marginX + 200, state.cursorY);
-            state.cursorY += Math.max(14, valueLines.length * 11 + 2);
-          }
-
-          // -- shared data prep -----------------------------------------
-          const outcomes = [...(analysis.outcomes ?? [])].sort(
-            (a, b) => (b.current_probability ?? 0) - (a.current_probability ?? 0),
-          );
-          const topOutcomes = outcomes.slice(0, 3);
-          const factorRows = (analysis.factors ?? []).map((factor) => [
-            factor.label ?? titleFromId(factor.id),
-            `${Math.round((factorValues?.[factor.id] ?? 0.5) * 100)}%`,
-            topOutcomes
-              .map((outcome) => {
-                const c = outcome.factor_coefficients?.[factor.id] ?? 0;
-                return `${outcome.title}: ${c >= 0 ? "+" : ""}${c.toFixed(2)}`;
-              })
-              .join("  ·  ") || "—",
-          ]);
-
-          // -- state machine --------------------------------------------
-          const state = { pageNumber: 1, cursorY: marginY + 28 };
-          drawPageHeader();
-
-          // -- 1. COVER ---------------------------------------------------
-          state.cursorY = marginY + 50;
-          doc.setFont("helvetica", "bold");
-          doc.setFontSize(28);
-          doc.setTextColor(palette.ink);
-          doc.text("Forecast Report", marginX, state.cursorY);
-          state.cursorY += 26;
-          doc.setFont("helvetica", "normal");
-          doc.setFontSize(text.subhead);
-          doc.setTextColor(palette.accent);
-          doc.text(`Resolved question`, marginX, state.cursorY);
-          state.cursorY += 14;
-          doc.setFont("helvetica", "bold");
-          doc.setFontSize(15);
-          doc.setTextColor(palette.ink);
-          const rqLines = doc.splitTextToSize(analysis.resolved_question ?? "—", innerW);
-          doc.text(rqLines, marginX, state.cursorY);
-          state.cursorY += rqLines.length * 17 + 10;
-
-          drawRule();
-
-          const horizon = analysis.time_horizon ?? {};
-          const generated = new Date().toLocaleString("en-US", {
-            year: "numeric", month: "short", day: "numeric",
-            hour: "2-digit", minute: "2-digit", timeZoneName: "short",
-          });
-          drawKeyValue("Analysis ID", analysis.analysis_id);
-          drawKeyValue("Time horizon", `${horizon.start ?? "—"}  →  ${horizon.end ?? "—"}  (${horizon.label ?? "—"})`);
-          drawKeyValue("Generated", generated);
-          drawKeyValue("Overall confidence", `${Math.round((analysis.confidence?.overall ?? 0) * 100)}%`);
-          drawKeyValue("Outcomes", String(outcomes.length));
-          drawKeyValue("Sources", String(analysis.sources?.length ?? 0));
-          drawKeyValue("Contradictions", String(analysis.contradictions?.length ?? 0));
-          drawKeyValue("Research events", String(analysis.events?.length ?? 0));
-          drawKeyValue("User events", String(userEvents?.length ?? 0));
-
-          if (analysis.coverage_note) {
-            state.cursorY += 6;
-            drawH2("Coverage note");
-            drawParagraph(analysis.coverage_note);
-          }
-
-          // -- 2. PROBABILITY FIELD (Galaxy) ------------------------------
-          addPage();
-          drawH1("Probability field", "Galaxy view: bubble area = current probability, color = outcome category.");
-          const galaxyRows = outcomes.map((outcome, index) => {
-            const probability = displayProbability(outcome);
-            const color = outcomeColor(outcome, index);
-            const hex = color.startsWith("#")
-              ? color
-              : (outcomeHex[index % outcomeHex.length]);
-            return [
-              { text: outcome.title, color: hex },
-              `${probability.toFixed(1)}%`,
-              `${Math.round((outcome.impact ?? 0.5) * 100)}%`,
-              confidenceLabel(outcome.confidence ?? 0),
-              `${Math.round((outcome.confidence ?? 0) * 100)}%`,
-              (outcome.description ?? "").slice(0, 220),
-            ];
-          });
-          drawTable(
-            [
-              { label: "Outcome", weight: 2.2, color: true },
-              { label: "Probability", weight: 0.9 },
-              { label: "Impact", weight: 0.7 },
-              { label: "Confidence", weight: 1.0 },
-              { label: "Conf. %", weight: 0.7 },
-              { label: "Description", weight: 2.5 },
-            ],
-            galaxyRows,
-          );
-
-          // -- 3. RANKED OUTCOMES -----------------------------------------
-          addPage();
-          drawH1("Ranked outcomes", "Sorted by recalculated probability with confidence and leading drivers.");
-          const rankedRows = outcomes.map((outcome, index) => {
-            const top = topDrivers(outcome)[0];
-            const topLabel = top
-              ? `${titleFromId(top[0])} (${top[1] >= 0 ? "+" : ""}${top[1].toFixed(2)})`
-              : "—";
-            return [
-              String(index + 1),
-              outcome.title,
-              (outcome.description ?? "").slice(0, 240),
-              `${displayProbability(outcome).toFixed(1)}%`,
-              `${Math.round((outcome.confidence ?? 0) * 100)}%`,
-              topLabel,
-            ];
-          });
-          drawTable(
-            [
-              { label: "#", weight: 0.4 },
-              { label: "Outcome", weight: 1.8 },
-              { label: "Description", weight: 2.4 },
-              { label: "Probability", weight: 0.9 },
-              { label: "Confidence", weight: 0.8 },
-              { label: "Top driver", weight: 1.7 },
-            ],
-            rankedRows,
-          );
-
-          // -- 4. SCENARIO TREE -------------------------------------------
-          addPage();
-          drawH1("Scenario tree", "The resolved question branches through the strongest factors into evidence-grounded outcomes.");
-          const strengths = aggregateFactorStrengths().slice(0, 3);
-          // Tree drawn as three columns: root, branches, outcomes.
-          const colW = innerW / 3;
-          const rootX = marginX;
-          const branchX = marginX + colW;
-          const outcomeX = marginX + colW * 2;
-          const startY = state.cursorY + 8;
-          // Root node
-          doc.setFillColor("#10172a");
-          doc.setDrawColor("#10172a");
-          const rootText = analysis.resolved_question ?? "Question";
-          const rootLines = doc.splitTextToSize(rootText, colW - 24);
-          const rootH = rootLines.length * 12 + 18;
-          doc.roundedRect(rootX, startY, colW - 24, rootH, 6, 6, "FD");
-          doc.setFont("helvetica", "bold");
-          doc.setFontSize(text.subhead);
-          doc.setTextColor("#ffffff");
-          doc.text(rootLines, rootX + 12, startY + 14);
-
-          // Branches
-          let branchY = startY;
-          strengths.forEach(([factorId, strength], index) => {
-            const color = factorHex[factorId] ?? "#94a3b8";
-            const label = `${titleFromId(factorId)}`;
-            const strengthText = `Strength ${strength.toFixed(2)}`;
-            const branchLines = doc.splitTextToSize(label, colW - 24);
-            const bH = branchLines.length * 12 + 30;
-            doc.setFillColor(color);
-            doc.roundedRect(branchX, branchY, colW - 24, bH, 6, 6, "F");
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(text.subhead);
-            doc.setTextColor("#ffffff");
-            doc.text(branchLines, branchX + 12, branchY + 14);
-            doc.setFont("helvetica", "normal");
-            doc.setFontSize(text.small);
-            doc.text(strengthText, branchX + 12, branchY + bH - 8);
-            // Connector root → branch
-            doc.setDrawColor(color);
-            doc.setLineWidth(1.2);
-            doc.line(rootX + colW - 24, startY + rootH / 2, branchX, branchY + bH / 2);
-            branchY += bH + 16;
-          });
-
-          // Outcome column
-          let outY = startY;
-          outcomes.forEach((outcome, index) => {
-            const color = outcomeColor(outcome, index);
-            const hex = color.startsWith("#") ? color : outcomeHex[index % outcomeHex.length];
-            const topDriver = topDrivers(outcome)[0];
-            const factorId = topDriver?.[0];
-            const coeff = topDriver?.[1] ?? 0;
-            const lines = doc.splitTextToSize(outcome.title, colW - 24);
-            const oH = lines.length * 12 + 32;
-            doc.setFillColor("#ffffff");
-            doc.setDrawColor(hex);
-            doc.setLineWidth(1.4);
-            doc.roundedRect(outcomeX, outY, colW - 24, oH, 6, 6, "FD");
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(text.subhead);
-            doc.setTextColor(hex);
-            doc.text(`${displayProbability(outcome).toFixed(1)}%`, outcomeX + 12, outY + 14);
-            doc.setTextColor(palette.ink);
-            doc.text(lines, outcomeX + 12, outY + 28);
-            doc.setFont("helvetica", "normal");
-            doc.setFontSize(text.small);
-            doc.setTextColor(palette.muted);
-            const driverLabel = factorId
-              ? `${titleFromId(factorId)} ${coeff >= 0 ? "+" : ""}${coeff.toFixed(2)}`
-              : "—";
-            doc.text(driverLabel, outcomeX + 12, outY + oH - 8);
-            // Connector branch → outcome (use top-driver color)
-            const c = factorHex[factorId] ?? hex;
-            doc.setDrawColor(c);
-            doc.setLineWidth(0.8);
-            doc.line(branchX + colW - 24, startY + rootH / 2, outcomeX, outY + oH / 2);
-            outY += oH + 10;
-          });
-          state.cursorY = Math.max(branchY, outY) + 10;
-          drawParagraph(
-            "Connector color follows the top driver factor for each outcome. Numeric strength is the absolute sum of that factor's coefficient across all outcomes.",
-            text.small,
-          );
-
-          // -- 5. EVIDENCE TIMELINE ---------------------------------------
-          addPage();
-          drawH1("Evidence timeline", "Research milestones and user events across the analysis horizon.");
-          const start = new Date(analysis.time_horizon?.start ?? Date.now());
-          const end = new Date(analysis.time_horizon?.end ?? Date.now());
-          const span = Math.max(end.getTime() - start.getTime(), 1);
-          const axisY = state.cursorY + 80;
-          const axisX0 = marginX;
-          const axisX1 = pageW - marginX;
-          // Axis line
-          doc.setDrawColor("#3a4866");
-          doc.setLineWidth(1.4);
-          doc.line(axisX0, axisY, axisX1, axisY);
-          // Year ticks
-          doc.setFont("helvetica", "normal");
-          doc.setFontSize(text.small);
-          doc.setTextColor(palette.muted);
-          const startYear = start.getUTCFullYear();
-          const endYear = end.getUTCFullYear();
-          for (let year = startYear; year <= endYear; year += 1) {
-            const t = (Date.UTC(year, 0, 1) - start.getTime()) / span;
-            if (t < 0 || t > 1) continue;
-            const x = axisX0 + t * (axisX1 - axisX0);
+            doc.setTextColor("#445170");
+            doc.text(label, pageW - 36, 14, { align: "right" });
             doc.setDrawColor("#94a3b8");
-            doc.setLineWidth(0.6);
-            doc.line(x, axisY - 4, x, axisY + 4);
-            doc.text(String(year), x, axisY + 16, { align: "center" });
-          }
-          // Research events
-          const researchEvents = analysis.events ?? [];
-          researchEvents.forEach((event, index) => {
-            const d = new Date(event.date);
-            const t = Number.isNaN(d.getTime())
-              ? (index + 1) / (researchEvents.length + 1)
-              : Math.max(0, Math.min(1, (d.getTime() - start.getTime()) / span));
-            const x = axisX0 + t * (axisX1 - axisX0);
-            const color = ["#22d3ee", "#38bdf8", "#34d399", "#f59e0b"][index % 4];
-            // Dot on axis
-            doc.setFillColor(color);
-            doc.circle(x, axisY, 3.5, "F");
-            // Stem
-            doc.setDrawColor(color);
-            doc.setLineWidth(1.0);
-            doc.line(x, axisY, x, axisY - 50);
-            // Label
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(text.small);
-            doc.setTextColor(palette.ink);
-            const dateLabel = Number.isNaN(d.getTime())
-              ? "—"
-              : d.toLocaleDateString("en-US", { year: "numeric", month: "short", timeZone: "UTC" });
-            doc.text(event.label ?? "Event", x, axisY - 54, { align: "center", maxWidth: 110 });
-            doc.setFont("helvetica", "normal");
-            doc.setTextColor(palette.muted);
-            doc.text(dateLabel, x, axisY - 38, { align: "center" });
-          });
-          // User events on a second axis below
-          const userAxisY = axisY + 100;
-          doc.setDrawColor("#3a4866");
-          doc.setLineWidth(1.0);
-          doc.setLineDashPattern([3, 3], 0);
-          doc.line(axisX0, userAxisY, axisX1, userAxisY);
-          doc.setLineDashPattern([], 0);
+            doc.setLineWidth(0.4);
+            doc.line(36, 22, pageW - 36, 22);
+            doc.addImage(dataUrl, "JPEG", drawX, drawY, drawW, drawH);
+          };
+
+          // -- 1. COVER -------------------------------------------------
+          // Cover page is hand-laid (no screenshot) so it doesn't depend
+          // on the empty-state DOM.
+          doc.setFillColor("#eef3fb");
+          doc.rect(0, 0, pageW, pageH, "F");
+          doc.setFillColor("#ffffff");
+          doc.roundedRect(36, 36, pageW - 72, pageH - 72, 18, 18, "F");
+          doc.setDrawColor("#d8def0");
+          doc.setLineWidth(0.6);
+          doc.roundedRect(36, 36, pageW - 72, pageH - 72, 18, 18, "S");
+          // Brand
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(11);
+          doc.setTextColor("#8b5cf6");
+          doc.text("FUTURE-SCOPE", 60, 80);
+          doc.setDrawColor("#8b5cf6");
+          doc.setLineWidth(2);
+          doc.line(60, 86, 180, 86);
+          // Title
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(32);
+          doc.setTextColor("#10172a");
+          doc.text("Forecast Report", 60, 140);
+          // Subtitle
           doc.setFont("helvetica", "normal");
-          doc.setFontSize(text.small);
-          doc.setTextColor(palette.muted);
-          doc.text("User events (active)", axisX0, userAxisY - 6);
-          (userEvents ?? []).forEach((event) => {
-            const t = (event.time_decay - 0.2) / 0.8;
-            const x = axisX0 + Math.max(0, Math.min(1, t)) * (axisX1 - axisX0);
-            doc.setFillColor("#8b5cf6");
-            doc.circle(x, userAxisY, 3.5, "F");
-            doc.setDrawColor("#8b5cf6");
-            doc.setLineWidth(1.0);
-            doc.line(x, userAxisY, x, userAxisY - 36);
+          doc.setFontSize(13);
+          doc.setTextColor("#445170");
+          const horizon = analysis.time_horizon ?? {};
+          doc.text(
+            sanitize(`${horizon.start ?? "?"}  ->  ${horizon.end ?? "?"}    ${horizon.label ?? ""}`),
+            60,
+            162,
+          );
+          // Resolved question
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(10);
+          doc.setTextColor("#8b5cf6");
+          doc.text("RESOLVED QUESTION", 60, 200);
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(15);
+          doc.setTextColor("#10172a");
+          const rq = sanitize(analysis.resolved_question ?? "");
+          const rqLines = doc.splitTextToSize(rq, pageW - 120);
+          doc.text(rqLines, 60, 220);
+          // Summary metrics
+          const cardY = 220 + rqLines.length * 18 + 24;
+          const cardW = (pageW - 120 - 36) / 4;
+          const cardH = 70;
+          const metrics = [
+            ["Outcomes", String(analysis.outcomes?.length ?? 0)],
+            [
+              "Overall confidence",
+              `${Math.round((analysis.confidence?.overall ?? 0) * 100)}%`,
+            ],
+            ["Sources", String(analysis.sources?.length ?? 0)],
+            [
+              "Contradictions",
+              String(analysis.contradictions?.length ?? 0),
+            ],
+          ];
+          metrics.forEach(([label, value], index) => {
+            const x = 60 + index * (cardW + 12);
+            doc.setFillColor("#f4f6fb");
+            doc.roundedRect(x, cardY, cardW, cardH, 10, 10, "F");
+            doc.setDrawColor("#d8def0");
+            doc.roundedRect(x, cardY, cardW, cardH, 10, 10, "S");
             doc.setFont("helvetica", "bold");
-            doc.setFontSize(text.small);
-            doc.setTextColor(palette.ink);
-            doc.text(event.label ?? "Event", x, userAxisY - 40, { align: "center", maxWidth: 120 });
-            doc.setFont("helvetica", "normal");
-            doc.setTextColor(palette.muted);
-            doc.text(`Time decay ${(event.time_decay ?? 0).toFixed(2)}`, x, userAxisY - 26, { align: "center" });
+            doc.setFontSize(8.5);
+            doc.setTextColor("#66718d");
+            doc.text(label.toUpperCase(), x + 14, cardY + 22);
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(22);
+            doc.setTextColor("#10172a");
+            doc.text(value, x + 14, cardY + 52);
           });
-          state.cursorY = userAxisY + 30;
-          drawParagraph(
-            "Each research milestone is plotted on the solid axis at its date. User-added events are plotted on the dashed axis by their time-decay slider (0.0 = start, 1.0 = end).",
-            text.small,
+          // Generated / ID
+          const footerY = pageH - 80;
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(10);
+          doc.setTextColor("#445170");
+          doc.text(
+            sanitize(
+              `Generated ${new Date().toLocaleString("en-US", { dateStyle: "long", timeStyle: "short" })}`,
+            ),
+            60,
+            footerY,
           );
-          if (researchEvents.length > 0) {
-            drawH2("Research events list");
-            drawTable(
-              [
-                { label: "Label", weight: 3 },
-                { label: "Date", weight: 1 },
-              ],
-              researchEvents.map((event) => [
-                event.label ?? "—",
-                formatEvidenceDate(event.date ?? ""),
-              ]),
+          doc.text(
+            sanitize(`Analysis ${analysis.analysis_id}`),
+            60,
+            footerY + 16,
+          );
+          if (analysis.coverage_note) {
+            doc.setFontSize(9);
+            doc.setTextColor("#66718d");
+            const lines = doc.splitTextToSize(
+              sanitize(analysis.coverage_note),
+              pageW - 120,
             );
+            doc.text(lines.slice(-3), 60, pageH - 50);
           }
 
-          // -- 6. OUTCOME IMPACT MATRIX -----------------------------------
-          addPage();
-          drawH1("Outcome impact matrix", "Likelihood is plotted against impact; bubble size reflects confidence-weighted evidence.");
-          const matrixRows = outcomes.map((outcome, index) => {
-            const color = outcomeColor(outcome, index);
-            const hex = color.startsWith("#") ? color : outcomeHex[index % outcomeHex.length];
-            const probability = displayProbability(outcome);
-            const diameter = Math.max(38, Math.min(72, 36 + probability * (outcome.confidence ?? 0) * 0.9));
-            return [
-              { text: outcome.title, color: hex },
-              `${probability.toFixed(1)}%`,
-              `${Math.round((outcome.impact ?? 0.5) * 100)}%`,
-              `${diameter.toFixed(0)} px`,
-              confidenceLabel(outcome.confidence ?? 0),
-            ];
-          });
-          drawTable(
-            [
-              { label: "Outcome", weight: 2.6, color: true },
-              { label: "Likelihood", weight: 1.0 },
-              { label: "Impact", weight: 0.9 },
-              { label: "Bubble", weight: 0.8 },
-              { label: "Confidence", weight: 1.1 },
-            ],
-            matrixRows,
-          );
+          // -- 2..N. TAB SCREENSHOTS ------------------------------------
+          // For each tab, switch to it, wait for the renderer, and
+          // capture the workspace element (which contains the tab pane
+          // and both side rails). This is the most faithful way to
+          // produce a PDF that looks like the live view.
+          const tabLabels = {
+            galaxy: "Galaxy - Probability field",
+            ranked: "Ranked - Sorted outcomes",
+            tree: "Tree - Scenario tree",
+            timeline: "Timeline - Evidence timeline",
+            matrix: "Matrix - Outcome impact",
+            simulation: "Simulation - Live results",
+          };
+          // Save scroll state of the workspace so we can restore it.
+          const workspace = document.querySelector(".workspace");
+          const originalScroll = workspace ? workspace.scrollTop : 0;
 
-          // -- 7. SIMULATION RESULTS --------------------------------------
-          addPage();
-          drawH1("Simulation results", "Recalculated outcomes using current assumption values and active user events.");
-          const simRows = outcomes.map((outcome, index) => {
-            const baseline = state.baselineProbabilities?.[outcome.id] ?? outcome.current_probability;
-            const current = outcome.current_probability ?? 0;
-            const delta = (current - baseline) * 100;
-            const drivers = topDrivers(outcome)
-              .slice(0, 2)
-              .map(([factorId, coeff]) => `${titleFromId(factorId)} ${coeff >= 0 ? "+" : ""}${coeff.toFixed(2)}`)
-              .join("  ·  ") || "—";
-            return [
-              { text: outcome.title, color: outcomeHex[index % outcomeHex.length] },
-              `${(baseline * 100).toFixed(1)}%`,
-              `${(current * 100).toFixed(1)}%`,
-              `${delta >= 0 ? "+" : ""}${delta.toFixed(1)} pts`,
-              drivers,
-            ];
-          });
-          drawTable(
-            [
-              { label: "Outcome", weight: 2.0, color: true },
-              { label: "Baseline", weight: 0.8 },
-              { label: "Current", weight: 0.8 },
-              { label: "Δ", weight: 0.8 },
-              { label: "Top drivers", weight: 2.4 },
-            ],
-            simRows,
-          );
-          drawParagraph(
-            "Baseline is the original probability before any assumption changes or user events. Current reflects all active factors and events.",
-            text.small,
-          );
-
-          // -- 8. ASSUMPTIONS & EVENTS ------------------------------------
-          addPage();
-          drawH1("Assumptions & user events", "Assumption slider values and their top-3 outcome impact, plus any added user events.");
-          if (factorRows.length > 0) {
-            drawH2("Assumption sliders");
-            drawTable(
-              [
-                { label: "Factor", weight: 1.6 },
-                { label: "Value", weight: 0.7 },
-                { label: "Per-outcome impact", weight: 3.7 },
-              ],
-              factorRows,
-            );
+          for (const tabId of TAB_IDS) {
+            selectTab(tabId);
+            // wait for renderActiveView + tree-link pass
+            await new Promise((r) => setTimeout(r, 120));
+            // Scroll workspace to top so the capture starts at the
+            // header of the tab.
+            if (workspace) workspace.scrollTop = 0;
+            const target = document.querySelector(".workspace");
+            if (!target) continue;
+            const dataUrl = await captureElement(target);
+            addImagePage(dataUrl, sanitize(tabLabels[tabId] ?? tabId));
           }
-          if ((userEvents ?? []).length > 0) {
-            drawH2("User events");
-            const eventRows = userEvents.map((event) => {
-              const impacts = (analysis.outcomes ?? [])
-                .map((outcome) => {
-                  const v = event.impacts?.[outcome.id] ?? 0;
-                  return `${outcome.title}: ${v >= 0 ? "+" : ""}${v.toFixed(2)}`;
-                })
-                .join("  ·  ");
-              return [
-                event.label ?? "—",
-                event.active ? "Active" : "Inactive",
-                `${(event.time_decay ?? 0).toFixed(2)}`,
-                impacts || "—",
-              ];
-            });
-            drawTable(
-              [
-                { label: "Event", weight: 2.0 },
-                { label: "State", weight: 0.8 },
-                { label: "Decay", weight: 0.6 },
-                { label: "Per-outcome impact (logit)", weight: 3.6 },
-              ],
-              eventRows,
-            );
-          } else {
-            drawParagraph("No user events have been added in this session.");
-          }
+          // Restore the user's scroll and tab.
+          if (workspace) workspace.scrollTop = originalScroll;
+          selectTab(ctx.activeTab);
 
-          // -- 9. EVIDENCE BY STANCE --------------------------------------
-          addPage();
-          drawH1("Evidence by stance", "Top evidence items grouped by how they relate to the resolved question.");
-          const stances = ["supporting", "opposing", "neutral"];
-          stances.forEach((stance) => {
-            const items = (analysis.evidence_items ?? [])
-              .filter((item) => item.stance === stance)
-              .slice(0, 8);
-            drawH2(`${stance[0].toUpperCase()}${stance.slice(1)} evidence (${items.length})`);
-            if (items.length === 0) {
-              drawParagraph(`No ${stance} evidence returned for this analysis.`);
-            } else {
-              drawTable(
-                [
-                  { label: "Claim", weight: 3.0 },
-                  { label: "Strength", weight: 0.8 },
-                  { label: "Source quality", weight: 0.9 },
-                  { label: "Date", weight: 0.9 },
-                  { label: "Sources", weight: 2.0 },
-                ],
-                items.map((item) => {
-                  const citedSources = (item.source_ids ?? [])
-                    .map((sid) => analysis.sources?.find((s) => s.id === sid))
-                    .filter(Boolean);
-                  const sourceQuality = citedSources.length
-                    ? citedSources.reduce((sum, s) => sum + (s.quality_score ?? 0), 0) / citedSources.length
-                    : item.quality_weight ?? 0;
-                  return [
-                    item.claim ?? "—",
-                    `${Math.round((item.strength ?? 0) * 100)}%`,
-                    `${Math.round((sourceQuality ?? 0) * 100)}%`,
-                    item.date ? formatEvidenceDate(item.date) : "—",
-                    citedSources.map((s) => s.title).slice(0, 3).join(" · ") || "—",
-                  ];
-                }),
-              );
+          // -- APPENDIX: text dump of all data --------------------------
+          // Just in case any data was off-screen or omitted from a tab,
+          // an appendix page lists every outcome, factor, source, event,
+          // and contradiction in full.
+          doc.addPage();
+          doc.setFillColor("#eef3fb");
+          doc.rect(0, 0, pageW, 22, "F");
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(8.5);
+          doc.setTextColor("#10172a");
+          doc.text("Future-Scope - Forecast Report", 36, 14);
+          doc.setFont("helvetica", "normal");
+          doc.setTextColor("#445170");
+          doc.text("Appendix - Full data export", pageW - 36, 14, {
+            align: "right",
+          });
+          doc.setDrawColor("#94a3b8");
+          doc.line(36, 22, pageW - 36, 22);
+          let y = 60;
+          const marginX = 48;
+          const innerW = pageW - marginX * 2;
+          const drawSection = (title) => {
+            if (y > pageH - 80) {
+              doc.addPage();
+              doc.setFillColor("#eef3fb");
+              doc.rect(0, 0, pageW, 22, "F");
+              doc.setFont("helvetica", "bold");
+              doc.setFontSize(8.5);
+              doc.setTextColor("#10172a");
+              doc.text("Future-Scope - Forecast Report (continued)", 36, 14);
+              doc.setDrawColor("#94a3b8");
+              doc.line(36, 22, pageW - 36, 22);
+              y = 60;
             }
-          });
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(13);
+            doc.setTextColor("#10172a");
+            doc.text(title, marginX, y);
+            y += 18;
+          };
+          const drawKv = (key, value) => {
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(9);
+            doc.setTextColor("#66718d");
+            doc.text(sanitize(key).toUpperCase(), marginX, y);
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(11);
+            doc.setTextColor("#10172a");
+            const lines = doc.splitTextToSize(sanitize(value), innerW - 220);
+            doc.text(lines, marginX + 220, y);
+            y += Math.max(16, lines.length * 13 + 4);
+          };
+          const drawList = (items) => {
+            items.forEach(([title, body]) => {
+              if (y > pageH - 80) {
+                doc.addPage();
+                doc.setFillColor("#eef3fb");
+                doc.rect(0, 0, pageW, 22, "F");
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(8.5);
+                doc.setTextColor("#10172a");
+                doc.text("Future-Scope - Forecast Report (continued)", 36, 14);
+                doc.setDrawColor("#94a3b8");
+                doc.line(36, 22, pageW - 36, 22);
+                y = 60;
+              }
+              doc.setFont("helvetica", "bold");
+              doc.setFontSize(10.5);
+              doc.setTextColor("#10172a");
+              const titleLines = doc.splitTextToSize(sanitize(title), innerW);
+              doc.text(titleLines, marginX, y);
+              y += titleLines.length * 13;
+              if (body) {
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(9.5);
+                doc.setTextColor("#445170");
+                const bodyLines = doc.splitTextToSize(sanitize(body), innerW);
+                doc.text(bodyLines, marginX, y);
+                y += bodyLines.length * 12 + 6;
+              } else {
+                y += 4;
+              }
+            });
+          };
 
-          // -- 10. SOURCES & CONTRADICTIONS -------------------------------
-          addPage();
-          drawH1("Top sources & contradictions", "Reference sources cited by the analysis and any contradictions detected between them.");
-          const sources = (analysis.sources ?? []).slice(0, 8);
-          if (sources.length > 0) {
-            drawH2(`Top sources (${sources.length})`);
-            drawTable(
-              [
-                { label: "Title", weight: 3.0 },
-                { label: "Domain", weight: 1.5 },
-                { label: "Type", weight: 1.0 },
-                { label: "Quality", weight: 0.7 },
-                { label: "URL", weight: 2.2 },
-              ],
-              sources.map((source) => [
-                source.title ?? "—",
-                source.domain ?? "—",
-                titleFromId(source.source_type ?? "other"),
-                `${Math.round((source.quality_score ?? 0) * 100)}%`,
-                source.url ?? "—",
-              ]),
-            );
+          drawSection("Analysis");
+          drawKv("Prompt", ctx.prompt ?? "");
+          drawKv("Resolved question", analysis.resolved_question ?? "");
+          drawKv("Time horizon", `${analysis.time_horizon?.start ?? "?"} -> ${analysis.time_horizon?.end ?? "?"} (${analysis.time_horizon?.label ?? ""})`);
+          drawKv("Analysis ID", analysis.analysis_id ?? "");
+          drawKv("Generated", new Date().toISOString());
+          if (analysis.coverage_note) {
+            y += 6;
+            drawKv("Coverage note", analysis.coverage_note);
           }
-          const contradictions = analysis.contradictions ?? [];
-          drawH2(`Contradictions (${contradictions.length})`);
-          if (contradictions.length === 0) {
-            drawParagraph("No contradictions detected in the cited sources.");
+          y += 12;
+          drawSection("Outcomes");
+          drawList(
+            (analysis.outcomes ?? []).map((outcome, index) => {
+              const top = topDrivers(outcome)[0];
+              const topLabel = top
+                ? `${titleFromId(top[0])} ${top[1] >= 0 ? "+" : ""}${top[1].toFixed(2)}`
+                : "—";
+              return [
+                `${index + 1}. ${sanitize(outcome.title)} - ${displayProbability(outcome).toFixed(1)}% - impact ${Math.round((outcome.impact ?? 0.5) * 100)}% - ${confidenceLabel(outcome.confidence ?? 0)} confidence`,
+                sanitize(outcome.description ?? ""),
+              ];
+            }),
+          );
+          y += 12;
+          drawSection("Factors");
+          drawList(
+            (analysis.factors ?? []).map((factor) => [
+              `${sanitize(factor.label)} = ${Math.round((ctx.factors?.[factor.id] ?? 0.5) * 100)}%`,
+              sanitize(factor.description ?? ""),
+            ]),
+          );
+          y += 12;
+          drawSection("User events");
+          if ((ctx.userEvents ?? []).length === 0) {
+            doc.setFont("helvetica", "italic");
+            doc.setFontSize(10);
+            doc.setTextColor("#66718d");
+            doc.text("No user events have been added in this session.", marginX, y);
+            y += 20;
           } else {
-            drawTable(
-              [
-                { label: "Topic", weight: 2.0 },
-                { label: "Claim A", weight: 2.4 },
-                { label: "Claim B", weight: 2.4 },
-                { label: "Resolution", weight: 1.2 },
-                { label: "Sources", weight: 1.4 },
-              ],
-              contradictions.map((c) => [
-                c.topic ?? "—",
-                c.claim_a ?? "—",
-                c.claim_b ?? "—",
-                (c.resolution ?? "—").replaceAll("_", " "),
-                (c.source_ids ?? []).join(", "),
+            drawList(
+              ctx.userEvents.map((event) => [
+                `${sanitize(event.label)} (${event.active ? "active" : "inactive"}, decay ${(event.time_decay ?? 0).toFixed(2)})`,
+                (analysis.outcomes ?? [])
+                  .map((outcome) => {
+                    const v = event.impacts?.[outcome.id] ?? 0;
+                    return `${sanitize(outcome.title)}: ${v >= 0 ? "+" : ""}${v.toFixed(2)} logit`;
+                  })
+                  .join(" | "),
+              ]),
+            );
+          }
+          y += 12;
+          drawSection("Top sources");
+          drawList(
+            (analysis.sources ?? []).slice(0, 16).map((source) => [
+              `${sanitize(source.title)} (${sanitize(source.domain)}, ${titleFromId(source.source_type ?? "other")}, ${Math.round((source.quality_score ?? 0) * 100)}% quality)`,
+              sanitize(source.url ?? ""),
+            ]),
+          );
+          y += 12;
+          drawSection("Contradictions");
+          if ((analysis.contradictions ?? []).length === 0) {
+            doc.setFont("helvetica", "italic");
+            doc.setFontSize(10);
+            doc.setTextColor("#66718d");
+            doc.text("No contradictions detected.", marginX, y);
+            y += 20;
+          } else {
+            drawList(
+              analysis.contradictions.map((c) => [
+                sanitize(c.topic ?? ""),
+                `A: ${sanitize(c.claim_a ?? "")} | B: ${sanitize(c.claim_b ?? "")} | resolution: ${sanitize((c.resolution ?? "").replaceAll("_", " "))} | sources: ${(c.source_ids ?? []).join(", ")}`,
               ]),
             );
           }
 
-          // The first page is the cover. jsPDF's addPage pushes the next
-          // sheet and we kept drawing on the new one; the call above moved
-          // state forward. We want the cover to show no header strip; the
-          // first drawPageHeader was on the cover at cursorY = marginY + 28
-          // and is harmless because it draws a 22pt strip and the title
-          // starts at marginY + 50 which is below it. Leave as is.
+          // Final footer
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(8);
+          doc.setTextColor("#66718d");
+          doc.text(
+            sanitize(
+              `Generated by Future-Scope on ${new Date().toISOString()} - analysis ${analysis.analysis_id}`,
+            ),
+            marginX,
+            pageH - 24,
+          );
+
+          // Drop the empty first page (jsPDF starts on page 1 by
+          // default; addPage pushes subsequent ones).
+          doc.deletePage(1);
           return doc;
         }
 

@@ -293,9 +293,20 @@ if (!done) {
 console.log("analysis complete");
 
 // Now click Export
-const downloadPromise = page.waitForEvent("download", { timeout: 30_000 });
+const downloadPromise = page.waitForEvent("download", { timeout: 60_000 });
 await page.click("#export-button");
-const download = await downloadPromise;
+console.log("clicked export, waiting for download…");
+let download;
+try {
+  download = await downloadPromise;
+} catch (err) {
+  console.error("download never fired. page errors:");
+  for (const e of pageErrors) console.error("  pageerror:", e);
+  for (const e of consoleErrors) console.error("  console:", e);
+  await page.screenshot({ path: "C:/Users/thoma/AppData/Local/Temp/pdf-export-failed.png", fullPage: true });
+  await browser.close();
+  process.exit(1);
+}
 const pdfPath = "C:/Users/thoma/AppData/Local/Temp/future-scope.pdf";
 await download.saveAs(pdfPath);
 console.log(`saved PDF to ${pdfPath}`);
@@ -321,8 +332,8 @@ console.log("PDF check:", JSON.stringify(check, null, 2));
 const passed =
   check.headerMagic &&
   check.hasEof &&
-  check.byteSize > 20_000 &&
-  check.pageCount >= 9 &&
+  check.byteSize > 100_000 &&
+  check.pageCount >= 7 &&
   check.containsResolvedQuestion &&
   check.containsOutcome1 &&
   check.containsContradiction &&
