@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/future-scope-banner.svg" alt="Future Scope" width="100%" />
+</p>
+
 # Future•Scope
 
 Future•Scope is a live-only, source-grounded forecasting workspace. It turns a bounded question into MiniMax-native research, validated evidence, calibrated outcomes, and a deterministic logit/softmax simulation. The browser calls only the secure Cloudflare Worker and never receives the provider credential.
