@@ -30,6 +30,7 @@ test("tests the proxy and persists only versioned preferences", async ({ page })
     schema_version: 1,
     theme: "light",
     backend_proxy_url: "http://127.0.0.1:4173",
+    app_token: null,
     ui_density: "comfortable",
     last_tab: "galaxy",
   });

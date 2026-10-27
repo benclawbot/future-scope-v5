@@ -68,7 +68,7 @@ test("renders all six live analysis views", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Evidence timeline" })).toBeVisible();
   await expect(page.getByText("Policy review milestone")).toBeVisible();
   await expect(page.locator(".timeline-milestone")).toHaveCount(1);
-  await expect(page.locator(".timeline-pin")).toHaveCount(1);
+  await expect(page.locator(".timeline-connector")).toHaveCount(1);
 
   await page.getByRole("tab", { name: "Matrix" }).click();
   await expect(page.getByRole("heading", { name: "Outcome impact matrix" })).toBeVisible();
