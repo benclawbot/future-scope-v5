@@ -58,15 +58,43 @@ export const agentFixtures = {
         freshness: "recent",
         importance: 0.75,
       },
+      {
+        id: "task_007",
+        purpose: "recent_developments",
+        query: "Find grid storage procurement and pipeline data.",
+        freshness: "recent",
+        importance: 0.8,
+      },
+      {
+        id: "task_008",
+        purpose: "constraints",
+        query: "Find grid storage incentives and interconnection policy changes.",
+        freshness: "recent",
+        importance: 0.7,
+      },
+      {
+        id: "task_009",
+        purpose: "expert_analysis",
+        query: "Find analyst commentary on grid storage deployment pace.",
+        freshness: "recent",
+        importance: 0.65,
+      },
+      {
+        id: "task_010",
+        purpose: "base_rates",
+        query: "Find battery pack and system cost trends for grid storage.",
+        freshness: "any",
+        importance: 0.7,
+      },
     ],
   },
   A2: {
-    sources: createCandidateSources(20),
+    sources: createCandidateSources(40),
     research_summary: "MiniMax found a diverse set of decision-relevant sources.",
     coverage_gaps: ["Private project pipeline data is incomplete."],
   },
   A3: {
-    scores: Array.from({ length: 20 }, (_, index) => ({
+    scores: Array.from({ length: 40 }, (_, index) => ({
       source_id: `src_${String(index + 1).padStart(3, "0")}`,
       authority_score: 0.8,
       recency_score: 0.9,
@@ -77,7 +105,7 @@ export const agentFixtures = {
     })),
   },
   A4: {
-    evidence_items: Array.from({ length: 12 }, (_, index) => ({
+    evidence_items: Array.from({ length: 25 }, (_, index) => ({
       id: `ev_${String(index + 1).padStart(3, "0")}`,
       claim: `Evidence statement ${index + 1}`,
       source_ids: [`src_${String((index % 8) + 1).padStart(3, "0")}`],

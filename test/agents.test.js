@@ -17,7 +17,7 @@ describe("runAnalysisPipeline", () => {
     const payload = await runAnalysisPipeline(
       {
         prompt: "Will grid storage deployment accelerate by June 2028?",
-        research_depth: "balanced",
+        research_depth: "deep",
         time_horizon_override: null,
         locale: "en-US",
       },
@@ -39,7 +39,7 @@ describe("runAnalysisPipeline", () => {
     expect(payload.coverage_gaps).toEqual(agentFixtures.A2.coverage_gaps);
     expect(payload.sources.every((source) => source.source_type)).toBe(true);
     expect(payload.sources.length).toBeGreaterThanOrEqual(8);
-    expect(payload.evidence_items).toHaveLength(12);
+    expect(payload.evidence_items).toHaveLength(25);
     expect(payload.outcomes).toHaveLength(4);
     expect(
       payload.outcomes.reduce(
@@ -68,7 +68,7 @@ describe("runAnalysisPipeline", () => {
     const payload = await runAnalysisPipeline(
       {
         prompt: "Will grid storage deployment accelerate by June 2028?",
-        research_depth: "balanced",
+        research_depth: "deep",
         time_horizon_override: null,
         locale: "en-US",
       },
@@ -102,7 +102,7 @@ describe("runAnalysisPipeline", () => {
     await runAnalysisPipeline(
       {
         prompt: "Will grid storage deployment accelerate by June 2028?",
-        research_depth: "balanced",
+        research_depth: "deep",
         time_horizon_override: null,
         locale: "en-US",
       },

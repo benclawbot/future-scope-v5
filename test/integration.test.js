@@ -67,7 +67,7 @@ describe("complete Worker analysis integration", () => {
         },
         body: JSON.stringify({
           prompt: "Will grid storage deployment accelerate by June 2028?",
-          research_depth: "balanced",
+          research_depth: "deep",
           time_horizon_override: null,
           locale: "en-US",
         }),
@@ -81,7 +81,7 @@ describe("complete Worker analysis integration", () => {
     expect(payload.request_id).toBe("33333333-3333-4333-8333-333333333333");
     expect(payload.research_provider).toBe("minimax_native");
     expect(payload.sources.length).toBeGreaterThanOrEqual(8);
-    expect(payload.evidence_items).toHaveLength(12);
+    expect(payload.evidence_items).toHaveLength(25);
     expect(payload.outcomes).toHaveLength(4);
     expect(
       payload.outcomes.reduce(
@@ -92,7 +92,7 @@ describe("complete Worker analysis integration", () => {
     expect(payload.audit.thresholds_met).toBe(true);
     expect(JSON.parse(log.mock.calls.at(-1)[0])).toMatchObject({
       outcome: "success",
-      sources_count: 20,
+      sources_count: 30,
       outcomes_count: 4,
     });
     log.mockRestore();
